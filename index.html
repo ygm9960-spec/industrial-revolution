@@ -6514,7 +6514,7 @@ button:is(.v29-close,.round-close,.v12-x,.v10-close,.v21-close,[aria-label*="닫
  window.addEventListener('popstate',onBack);
  function refreshSize(){document.documentElement.classList.toggle('v29-fullscreen',!!(document.fullscreenElement||document.webkitFullscreenElement));if(typeof resize==='function')resize();scheduleDecorate();}
  document.addEventListener('fullscreenchange',refreshSize);document.addEventListener('webkitfullscreenchange',refreshSize);
- const badge=document.querySelector('.version-badge');if(badge)badge.textContent='CANVAS v40.0';
+ const badge=document.querySelector('.version-badge');if(badge)badge.textContent='CANVAS v41.0';
  document.title='산업혁명: 부의 시대';
  window.industrialV29={version:'29.0',enterFullscreen,closeTopMenu,armHistory};
  decorate();
@@ -7373,6 +7373,65 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
  const alert=$('v35Alert');const covers=['v11BuildTray','v12Workers','v18BuildingCard','v11BuildDetails'];
  setInterval(()=>{if(!alert)return;const blocked=covers.some(id=>{const e=$(id);return e&&!e.classList.contains('hidden')&&e.getClientRects().length})||(typeof sheetOpen!=='undefined'&&sheetOpen);
    alert.style.visibility=blocked?'hidden':'';},300);
+})();
+</script>
+
+<script id="v41Music">
+/* v41 | 장별 배경음악 · 시작부터 소리 켜짐 · 엔딩에서 음악이 사라지고 무음 */
+(()=>{
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const TRACKS={1:'audio/ch1.mp3',3:'audio/ch3.mp3',4:'audio/ch4.mp3',6:'audio/ch6.mp3'};
+ const VOL=.5;
+ // 1·2장 → 1장 곡, 3장 → 3장 곡, 4·5장 → 4장 곡, 6·7장 → 6장 곡
+ const trackFor=lv=>lv>=6?6:lv>=4?4:lv>=3?3:1;
+ const players={};
+ function player(n){if(!players[n]){const a=new Audio(TRACKS[n]);a.loop=true;a.preload=n===1?'auto':'none';a.volume=0;players[n]=a;}return players[n];}
+ let current=null,silent=false,unlocked=false;
+ const fades=new Map();
+ function fade(a,to,ms,then){clearInterval(fades.get(a));const from=a.volume,t0=performance.now();
+   const id=setInterval(()=>{const k=Math.min(1,(performance.now()-t0)/ms);a.volume=Math.max(0,Math.min(1,from+(to-from)*k));
+     if(k>=1){clearInterval(id);fades.delete(a);then?.();}},50);fades.set(a,id);}
+ // ── 소리는 처음부터 켜짐
+ soundEnabled=true;
+ const btn=$('soundButton');
+ function syncButton(){if(!btn)return;btn.textContent=soundEnabled?'🔊':'🔇';btn.setAttribute('aria-label',soundEnabled?'소리 끄기':'소리 켜기');}
+ syncButton();
+ // 합성 배경음(삑삑 소리)은 실제 음악과 겹치지 않게 끔
+ playAmbient=function(){};
+ function wanted(){
+   if(!soundEnabled||silent||document.hidden)return null;
+   const intro=$('introOverlay');if(intro&&!intro.classList.contains('hidden'))return 1;
+   if(!s?.started)return 1;
+   return trackFor(v5Level());}
+ function sync(){
+   const n=wanted();
+   if(n===current){if(n&&players[n]?.paused&&unlocked)players[n].play().catch(()=>{});return;}
+   const old=current?players[current]:null;current=n;
+   if(old)fade(old,0,1200,()=>old.pause());
+   if(n){const a=player(n);a.play().then(()=>{unlocked=true;fade(a,VOL,1800);}).catch(()=>{current=null;});}
+ }
+ // 브라우저는 첫 터치 전에는 소리를 막으므로, 첫 터치·키 입력에 바로 재생
+ const unlock=()=>{unlocked=true;sync();};
+ for(const ev of ['pointerdown','touchstart','keydown','click'])addEventListener(ev,unlock,{capture:true,passive:true});
+ // 소리 버튼
+ const oldToggle=toggleSound;
+ toggleSound=function(...a){const r=oldToggle(...a);syncButton();sync();return r;};
+ if(btn)btn.onclick=toggleSound;
+ document.addEventListener('visibilitychange',sync);
+ setInterval(sync,700);
+ // ── 엔딩: 마지막 곡이 서서히 사라지고, 붉은 질문은 완전한 무음
+ const final=$('finalOverlay'),step3=$('endingStep3');
+ const visible=el=>!!el&&!el.classList.contains('hidden');
+ setInterval(()=>{
+   if(visible(step3)){if(!silent){silent=true;}for(const a of Object.values(players)){clearInterval(fades.get(a));a.volume=0;a.pause();}current=null;return;}
+   if(visible(final)){if(!silent){silent=true;const a=current?players[current]:null;current=null;if(a)fade(a,0,9000,()=>a.pause());}return;}
+   if(silent&&!visible(final)){silent=false;}
+ },200);
+ // 붉은 질문 동안은 효과음도 내지 않음
+ const oldSfx=playSfx;playSfx=function(...a){if(visible(step3))return;return oldSfx(...a);};
+ window.industrialV41={version:'41.0',sync,trackFor,get current(){return current},state:()=>Object.fromEntries(Object.entries(players).map(([k,a])=>[k,{paused:a.paused,t:+a.currentTime.toFixed(1),vol:+a.volume.toFixed(2),err:a.error?.code||0}]))};
+ sync();
 })();
 </script>
 
