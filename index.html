@@ -637,6 +637,8 @@ body:has(#sheet:not(.collapsed)) #v18BuildingCard{display:none!important;pointer
 body:has(#sheet:not(.collapsed)) .v21-economic{display:none!important}
 
 </style>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 </head>
 <body>
   <main id="app">
@@ -673,7 +675,7 @@ body:has(#sheet:not(.collapsed)) .v21-economic{display:none!important}
         <button id="resetCamera" title="지도 중앙으로" aria-label="지도 중앙으로">⌖</button>
       </div>
       <button class="sheep-action" id="sheepButton" aria-label="양털 깎기">🐑 <span>양털 깎기</span><b id="sheepReward">+1</b></button>
-      <div id="placeBanner" class="place-banner hidden">📍 밝게 열린 지역의 빈 땅을 터치하세요 <button id="cancelPlacement">취소</button></div>
+      <div id="placeBanner" class="place-banner hidden">📍 지도의 빈 땅을 터치하세요 <button id="cancelPlacement">취소</button></div>
       <div class="map-tip" id="mapTip">손가락으로 이동 · 두 손가락 확대·축소 · 2.5D 지도</div>
     </div>
 
@@ -760,8 +762,8 @@ const TECHS = [
 ];
 const T = Object.fromEntries(TECHS.map(t=>[t.id,t]));
 const ROUTES = [
- {id:'india',name:'인도 · 동인도회사 교역',flag:'🇮🇳',type:'동인도회사 영향권',cost:0,need:'india',coord:[257,136],gain:'면직물 수요 증가 · 무역 이익',detail:'17세기 이후 인도산 면직물이 영국에 유입되어 인기를 끌었습니다.'},
- {id:'northAmerica',name:'북아메리카 · 면화',flag:'🌿',type:'독립 이후 미국과 교역',cost:90,need:'india',coord:[79,80],gain:'면화 +1.4/초',detail:'미국 독립 이후의 면화 거래는 영국 식민지 경영과 구별해야 합니다. 면화 생산에는 노예 노동도 동원되었습니다.'},
+ {id:'india',name:'인도 · 동인도회사 교역',flag:'🇮🇳',type:'동인도회사 영향권',cost:0,need:'india',coord:[257,136],gain:'면직물 수요 증가 · 무역 이익 · 면화 수입',detail:'17세기 이후 인도산 면직물이 영국에 유입되어 인기를 끌었습니다.'},
+ {id:'northAmerica',name:'북아메리카 · 면화',flag:'🌿',type:'독립 이후 미국과 교역',cost:90,need:'india',coord:[79,80],gain:'면화 수입 (무역소·항구·장 발전에 따라 증가)',detail:'미국 독립 이후의 면화 거래는 영국 식민지 경영과 구별해야 합니다. 면화 생산에는 노예 노동도 동원되었습니다.'},
  {id:'caribbean',name:'카리브해 · 대서양 무역',flag:'⛵',type:'영국 식민지 무역',cost:120,need:'enclosure',coord:[118,132],gain:'무역 이익 +£1.2/초',detail:'카리브해 식민지 경제와 대서양 무역은 플랜테이션·노예제와 밀접하게 연결되어 있습니다.'},
  {id:'europe',name:'유럽 · 공업 제품 수출',flag:'🏷️',type:'유럽 국가들과 교역',cost:165,need:'jenny',coord:[188,66],gain:'면직물 판매 이익 +30%',detail:'기술 혁신과 교통 발달로 영국의 공업 제품이 유럽 등 더 넓은 시장에 팔렸습니다.'}
 ];
@@ -898,7 +900,7 @@ function autoAssign(){let avail=s.hired-activeWorkers(s);if(avail<=0){toast('배
 function sellWool(){const n=Math.min(10,Math.floor(s.wool));if(n<3){toast('팔 양모가 부족합니다. 양을 터치하세요.',true);return}const revenue=n*1.7;s.wool-=n;addRevenue(revenue,'wool');toast(`양모 ${n}개 판매 · +£${revenue.toFixed(1)}`);updateUI(true);save()}
 function addRevenue(q,type){s.coins+=q;s.stats.totalRevenue+=q;if(type==='wool')s.stats.woolRevenue+=q;else if(type==='cloth')s.stats.clothRevenue+=q;}
 function findSpot(id){const options=[];for(let r=1;r<N-1;r++)for(let c=1;c<N-1;c++)if(canPlace(id,r,c)){const dist=Math.hypot(r-7,c-7),rock=terrain(r,c)==='rock',riverAdj=nearRiver(r,c);let score=dist+(Math.sin(r*3+c*7)+1)*.35+(rock?.4:0);if(['coalMine','ironMine'].includes(id))score+=(rock?-2:2);if(id==='watermill')score+=(riverAdj?-3:2);if(id==='dock'||id==='harbor')score+=(nearRiver(r,c)?-3:3);options.push({r,c,score})}options.sort((a,b)=>a.score-b.score);return options[0]||null}
-function canPlace(id,r,c){if(r<1||r>=N-1||c<1||c>=N-1||isRiver(r,c)||s.buildings.some(x=>x.r===r&&x.c===c)||((r===9&&c===10)||(r===10&&c===9)))return false;if(Math.hypot(r-7,c-7)>3.5+s.phase*1.25)return false;if(id==='watermill'&&!nearRiver(r,c))return false;return true}
+function canPlace(id,r,c){if(r<1||r>=N-1||c<1||c>=N-1||isRiver(r,c)||s.buildings.some(x=>x.r===r&&x.c===c)||((r===9&&c===10)||(r===10&&c===9)))return false;if(Math.hypot(r-7,c-7)>99)return false;if(id==='watermill'&&!nearRiver(r,c))return false;return true}
 function build(id,manual=false,r=null,c=null){const b=B[id];if(!b)return;if(b.unlock&&!has(s,b.unlock)){toast('먼저 '+(T[b.unlock]?.name||'선행 기술')+'을 연구하세요.',true);return}if(s.coins<b.cost){toast('건설 자본이 부족합니다.',true);return}if(!manual){const spot=findSpot(id);if(!spot){toast('빈 부지가 부족합니다. 산업을 발전시켜 지도를 확장하세요.',true);return}r=spot.r;c=spot.c}else if(!canPlace(id,r,c)){toast('건물 사이에 한 칸 이상 여유를 두고 건설하세요.',true);return}
  s.coins-=b.cost;s.stats.profitReinvested=(s.stats.profitReinvested||0)+b.cost;let x={uid:s.nextUid++,type:id,r,c,workers:0,level:1,builtAt:s.elapsed};s.buildings.push(x);s.undo={uid:x.uid,at:s.elapsed,cost:b.cost};playSfx('build');if(id==='cottage'&&s.hired-activeWorkers(s)>0){x.workers=1}else if(id==='steamFactory'&&s.hired-activeWorkers(s)>0){x.workers=1}nextPlacement=null;$('#placeBanner').classList.add('hidden');toast(b.icon+' '+b.name+' 건설 완료!');if(id==='railway')toast('철도역에서 공장까지 화물이 더 빠르게 이동합니다.');if(id==='houses')toast('노동자 주거지가 늘어 고용 한도가 증가했습니다.');updateUI(true);save()}
 function techNeedsText(t){return t.req.map((x,i)=>`<span class="condition ${t.test(s)?'yes':'no'}">${t.test(s)?'✓':'○'} ${x}</span>`).join('')}
@@ -914,13 +916,14 @@ function updateUI(force=false){if(s.started&&!s.finished)checkAchievements();$('
 function estimateIncome(){let out=0;for(const b of s.buildings){let n=b.workers;if(b.type==='cottage')out+=n*1.6;if(b.type==='weaving')out+=n*4.2;if(b.type==='steamFactory')out+=n*7.5;if(b.type==='dock')out+=n*.35}if(s.routes.india)out+=.45;if(s.routes.caribbean)out+=1.2;if(s.routes.europe)out+=.7;return out- wagePerSecond()}
 function wagePerSecond(){const r=window.industrialV28Rules?window.industrialV28Rules.wageRate(s.wage):{low:.030,normal:.052,high:.088}[s.wage];return s.hired*r*(s.workHours/10)}
 function laborMultiplier(){const hour={8:1.07,10:1.24,12:1.43,14:1.65}[s.workHours];const wage={low:.93,normal:1,high:1.08}[s.wage];const hard=INTENSITIES[s.intensity||0].rate;return hour*wage*hard*(1-Math.min(.55,s.fatigue/170))}
+function cottonImportRate(){if(!s.routes.northAmerica&&!s.routes.india)return 0;const port=(has(s,'steamboat')?1.25:1)*(count(s,'harbor')?1.4:1)*(has(s,'telegraph')?1.12:1);const hubs=1+Math.min(3,count(s,'dock'))*.35+Math.min(3,count(s,'harbor'))*.5;const routeBase=(s.routes.northAmerica?6*(s.tradeLevels.northAmerica||1):0)+(s.routes.india?2.5*(s.tradeLevels.india||1):0);return routeBase*port*(window.industrialV31?.scale?.()||1)*hubs}
 function operate(dt){if(!gameRunning||s.finished||!s.started)return;const step=Math.min(dt*s.gameSpeed,2);s.elapsed+=step;s.realElapsed+=dt;
  s.stats.laborHours+=s.hired*s.workHours*dt/60; s.stats.meanHourAccumulator+=s.workHours*dt; if(s.intensity>=2)s.stats.hardLaborHours+=s.hired*dt/60; if(s.wage==='low')s.stats.wageLowHours+=s.hired*dt/60;
  const labor=laborMultiplier(),transport=(has(s,'rail')?1.10:1)*(count(s,'railway')?1.18:1),port=(has(s,'steamboat')?1.25:1)*(count(s,'harbor')?1.4:1)*(has(s,'telegraph')?1.12:1);
  let moneyGain=0;
  // 항구를 통한 무역은 매초 자동으로 입고된다.
  if(s.routes.india)moneyGain+=.45*port*(s.tradeLevels.india||1)*step;
- if(s.routes.northAmerica){const x=1.4*port*(s.tradeLevels.northAmerica||1)*step;s.cotton+=x;s.stats.cottonImported+=x}
+ {const x=cottonImportRate()*step;if(x>0){s.cotton+=x;s.stats.cottonImported+=x}}
  if(s.routes.caribbean)moneyGain+=1.2*port*(s.tradeLevels.caribbean||1)*step;
  if(s.routes.europe)moneyGain+=.72*port*(s.tradeLevels.europe||1)*step;
  for(const b of s.buildings){let u=(window.industrialV28Rules?window.industrialV28Rules.effectiveLabor(b.type,b.workers):b.workers)*labor*step*(1+(levelOf(b)-1)*.48)*v3Factor(b)*((typeof v5SiteFactor==='function')?v5SiteFactor(b):1)*((typeof v5SpecialtyFactor==='function')?v5SpecialtyFactor(b):1);if(!u){window.industrialV27?.recordWork(b,0,step);continue;}let actualProduction=0;switch(b.type){
@@ -937,9 +940,9 @@ function operate(dt){if(!gameRunning||s.finished||!s.started)return;const step=M
  case 'harbor':moneyGain+=u*.65;actualProduction=u;break;
  }window.industrialV27?.recordWork(b,actualProduction,step);}
  // 재고는 생산 시 쌓이고, 고정 가격으로 판매할 때만 감소합니다. 수요·가격 변동 없음.
- const shippingCapacity=(1.4+(count(s,'dock')*.6)+(count(s,'harbor')*1.5)+(count(s,'railway')*1.35)+(has(s,'steamboat')?1.15:0))*(window.industrialV31?.scale?.()||1);
+ const shippingCapacity=(1.4+(count(s,'dock')*.6)+(count(s,'harbor')*1.5)+(count(s,'railway')*1.35)+(has(s,'steamboat')?1.15:0))*(window.industrialV31?.scale?.()||1)*(1+.45*(s.v35?.exportLv||0));
  const sold=Math.min(s.cloth,shippingCapacity*step*(s.routes.europe?1.22:1));s.cloth-=sold;
- const clothSale=sold*9.2*transport;s.stats.clothSold=(s.stats.clothSold||0)+sold;s.stats.clothRevenue+=clothSale;moneyGain+=clothSale;
+ const clothSale=sold*9.2*transport*(1+.10*(s.v35?.exportLv||0));s.stats.clothSold=(s.stats.clothSold||0)+sold;s.stats.clothRevenue+=clothSale;moneyGain+=clothSale;
  s.lastIncome=(moneyGain-wagePerSecond()*step)/Math.max(.001,step);s.coins+=moneyGain-wagePerSecond()*step;s.stats.totalRevenue+=moneyGain;
  const exhaustion= (s.workHours===14?.060:s.workHours===12?.030:s.workHours===10?.010:-.043)+(s.intensity||0)*.017+(s.wage==='low'?.014:s.wage==='high'?-.012:0);s.fatigue=Math.max(0,Math.min(100,s.fatigue+step*exhaustion));if(s.elapsed-(s.points.at(-1)?.t||0)>=8){s.points.push({t:Math.round(s.elapsed),coins:Math.round(s.coins),workers:s.hired});s.points=s.points.slice(-100)}
  if(s.coins<0)s.coins=0;
@@ -966,13 +969,14 @@ $('#endingQuestionButton').onclick=()=>{$('#endingStep2').classList.add('hidden'
 $('#endingRestart').onclick=restart;
 $('#startButton').onclick=()=>{s=initial();s.started=true;gameRunning=true;$('#introOverlay').classList.add('hidden');toast('양을 터치해 양모를 모아보세요!');panelOpen('build');closeSheet();updateUI(true);save()};
 $('#resumeButton').onclick=()=>{$('#introOverlay').classList.add('hidden');if(s.finished)startEnding();else{gameRunning=s.gameSpeed!==0;toast('이전 진행을 불러왔습니다.');updateUI(true)}};
-function upgradeRoute(id){const r=ROUTES.find(r=>r.id===id);if(!r||!s.routes[id])return;const level=s.tradeLevels[id]||1;if(level>=3)return;const price=Math.ceil((r.cost||100)*(level===1?1.3:2));if(s.coins<price){toast('무역 확장 자본이 부족합니다.',true);return}s.coins-=price;s.tradeLevels[id]=level+1;toast('⛵ '+r.name+' 무역 규모 Lv.'+(level+1));history('🛳',r.name+' 확장','해상 운송량과 상업 수익 증가');playSfx('build');updateWorld();updateUI(true);save()}
-function updateWorld(){const active=ROUTES.filter(r=>s.routes[r.id]);const ports=(has(s,'steamboat')?1.25:1)*(count(s,'harbor')?1.4:1);const northRate=(s.tradeLevels.northAmerica||1);$('#tradeThroughput').textContent=`면화 ${(s.routes.northAmerica?1.4*ports*northRate:0).toFixed(1)}/초 · 교역 이익 £${((s.routes.india?.45:0)+(s.routes.caribbean?1.2:0)+(s.routes.europe?.72:0)).toFixed(1)}/초`;
- $('#routeCards').innerHTML=ROUTES.map(r=>{const open=s.routes[r.id],unlock=has(s,r.need);return `<article class="route-card"><div class="route-flag">${r.flag}</div><div class="route-main"><h3>${r.name}</h3><p><b style="color:${r.type.includes('독립')?'#99d5e6':'#e6c989'}">${r.type}</b> · ${r.detail}</p><div class="route-footer"><span>${r.gain}</span><button class="mini-button" data-route="${r.id}" ${open||!unlock||s.coins<r.cost?'disabled':''}>${open?'개설 완료 ✓':!unlock?'기술 필요':'£'+r.cost+' 개설'}</button>${open?`<button class="mini-button secondary" data-route-upgrade="${r.id}" ${(s.tradeLevels[r.id]||1)>=3||s.coins<Math.ceil((r.cost||100)*((s.tradeLevels[r.id]||1)===1?1.3:2))?'disabled':''}>무역 Lv.${s.tradeLevels[r.id]||1} ${((s.tradeLevels[r.id]||1)>=3)?'최대':'+ 확장'}</button>`:''}</div></div></article>`}).join('');
+const TRADE_MAX=12;function routeUpgradePrice(r,level){return Math.ceil((r.cost||100)*1.3*Math.pow(1.38,level-1));}
+function upgradeRoute(id){const r=ROUTES.find(r=>r.id===id);if(!r||!s.routes[id])return;const level=s.tradeLevels[id]||1;if(level>=TRADE_MAX)return;const price=routeUpgradePrice(r,level);if(s.coins<price){toast('무역 확장 자본이 부족합니다.',true);return}s.coins-=price;s.tradeLevels[id]=level+1;toast('⛵ '+r.name+' 무역 규모 Lv.'+(level+1));history('🛳',r.name+' 확장','해상 운송량과 상업 수익 증가');playSfx('build');updateWorld();updateUI(true);save()}
+function updateWorld(){const active=ROUTES.filter(r=>s.routes[r.id]);const ports=(has(s,'steamboat')?1.25:1)*(count(s,'harbor')?1.4:1);const northRate=(s.tradeLevels.northAmerica||1);$('#tradeThroughput').textContent=`면화 ${cottonImportRate().toFixed(1)}/초 · 교역 이익 £${((s.routes.india?.45:0)+(s.routes.caribbean?1.2:0)+(s.routes.europe?.72:0)).toFixed(1)}/초`;
+ $('#routeCards').innerHTML=ROUTES.map(r=>{const open=s.routes[r.id],unlock=has(s,r.need);return `<article class="route-card"><div class="route-flag">${r.flag}</div><div class="route-main"><h3>${r.name}</h3><p><b style="color:${r.type.includes('독립')?'#99d5e6':'#e6c989'}">${r.type}</b> · ${r.detail}</p><div class="route-footer"><span>${r.gain}</span><button class="mini-button" data-route="${r.id}" ${open||!unlock||s.coins<r.cost?'disabled':''}>${open?'개설 완료 ✓':!unlock?'기술 필요':'£'+r.cost+' 개설'}</button>${open?`<button class="mini-button secondary" data-route-upgrade="${r.id}" ${(s.tradeLevels[r.id]||1)>=TRADE_MAX||s.coins<routeUpgradePrice(r,s.tradeLevels[r.id]||1)?'disabled':''}>무역 Lv.${s.tradeLevels[r.id]||1} ${((s.tradeLevels[r.id]||1)>=TRADE_MAX)?'최대':'→ '+((s.tradeLevels[r.id]||1)+1)+' · £'+routeUpgradePrice(r,s.tradeLevels[r.id]||1).toLocaleString('ko-KR')}</button>`:''}</div></div></article>`}).join('');
  const root=$('#tradeRoutesSvg'),marker=$('#tradeMarkersSvg');root.innerHTML='';marker.innerHTML='';const uk={x:166,y:64};const ns='http://www.w3.org/2000/svg';for(const r of ROUTES){let active=s.routes[r.id];let path=document.createElementNS(ns,'path');const [x,y]=r.coord;const cx=(uk.x+x)/2,cy=Math.min(uk.y,y)-20;path.setAttribute('d',`M${uk.x} ${uk.y} Q${cx} ${cy} ${x} ${y}`);path.setAttribute('class','map-route '+(active?'':'locked'));root.append(path);if(active){let ship=document.createElementNS(ns,'circle');ship.setAttribute('r','3');ship.setAttribute('fill','#fae1a4');let anim=document.createElementNS(ns,'animateMotion');anim.setAttribute('dur',has(s,'steamboat')?'3s':'5.5s');anim.setAttribute('repeatCount','indefinite');anim.setAttribute('path',path.getAttribute('d'));ship.append(anim);root.append(ship)}let mark=document.createElementNS(ns,'g');mark.setAttribute('class','route-marker '+(active?'':'locked'));mark.setAttribute('transform',`translate(${x} ${y})`);mark.innerHTML=`<circle r="6"/><text y="${r.id==='europe'?20:-13}">${{india:'인도',northAmerica:'북아메리카',caribbean:'카리브해',europe:'유럽'}[r.id]}</text>`;mark.addEventListener('click',()=>{const card=$(`#routeCards [data-route="${r.id}"]`);if(card){card.closest('.route-card').scrollIntoView({behavior:'smooth',block:'center'})}});marker.append(mark)}let ukMark=document.createElementNS(ns,'g');ukMark.setAttribute('class','route-marker');ukMark.setAttribute('transform','translate(166 64)');ukMark.innerHTML='<circle r="7" fill="#f4cc80"/><text x="0" y="-13">🇬🇧 영국</text>';marker.append(ukMark)}
 // ---------- 2.5D 들판 렌더러 ----------
 const canvas=$('#mapCanvas');let ctx=canvas.getContext('2d',{alpha:true});
-const TW=56,TH=27,N=23,mid=7,pi=Math.PI;
+const TW=56,TH=27,N=53,mid=7,pi=Math.PI;
 let viewport={w:innerWidth,h:innerHeight,dpr:1},pointerMap=new Map(),panStart=null,lastTouchAt=0;
 function resize(){const rect=canvas.getBoundingClientRect();viewport.w=rect.width;viewport.h=rect.height;viewport.dpr=Math.min(s?.v4?.quality==='low'?1:1.45,devicePixelRatio||1);canvas.width=Math.round(rect.width*viewport.dpr);canvas.height=Math.round(rect.height*viewport.dpr);ctx.setTransform(viewport.dpr,0,0,viewport.dpr,0,0)}
 function noise(a,b){const t=Math.sin(a*127.1+b*311.7)*43758.5453;return t-Math.floor(t)}
@@ -1014,7 +1018,7 @@ function drawBuilding(b,x,y,z,t){const ty=b.type;const unit=({pasture:1.0,cottag
   if(ty==='railway'){ctx.fillStyle='#b1644b';ctx.fillRect(-22,-16,12,9);if(lv===3)smoke(-18,-21,t,.45)}
   ctx.fillStyle='#efd5a1';ctx.font='bold 9px sans-serif';ctx.fillText('★'.repeat(lv-1),-9,-40)
  }ctx.restore();if(b.workers){const n=Math.min(3,b.workers);for(let j=0;j<n;j++){const px=x-12+j*8+Math.sin(t*.0008+j+b.uid)*3,py=y+13+j%2*3;ctx.fillStyle='#d5c6a1';ctx.beginPath();ctx.arc(px,py-5,1.8,0,pi*2);ctx.fill();ctx.fillStyle=j%2?'#385a60':'#785e43';ctx.fillRect(px-2,py-3,4,7)}}}
-function drawTile(r,c,t){const p=project(r,c),z=s.camera.zoom,te=terrain(r,c),d=Math.hypot(r-mid,c-mid),visible=d<=3.5+s.phase*1.25;const palette={grass:['#93bc8a','#88b181','#a5c596'],field:['#c3bd88','#b5ba86','#c5ba8a'],forest:['#669d7d','#7eac85','#74a67e'],rock:['#9baa8e','#a4ae93','#95a996'],river:['#68aeb7','#6fb6bd','#61a7b3']}[te];let base=palette[Math.floor(noise(r*2,c*3)*3)];if(!visible&&te!=='river')base='#7d9e8e';let w=TW*z,h=TH*z;paintDiamond(p.x,p.y,w,h,base,te==='river'?'#b9e8e488':'#355b4850');
+function drawTile(r,c,t){const p=project(r,c),z=s.camera.zoom,te=terrain(r,c),d=Math.hypot(r-mid,c-mid),visible=d<=99;const palette={grass:['#93bc8a','#88b181','#a5c596'],field:['#c3bd88','#b5ba86','#c5ba8a'],forest:['#669d7d','#7eac85','#74a67e'],rock:['#9baa8e','#a4ae93','#95a996'],river:['#68aeb7','#6fb6bd','#61a7b3']}[te];let base=palette[Math.floor(noise(r*2,c*3)*3)];if(!visible&&te!=='river')base='#7d9e8e';let w=TW*z,h=TH*z;paintDiamond(p.x,p.y,w,h,base,te==='river'?'#b9e8e488':'#355b4850');
  if(te==='river'){ctx.strokeStyle='#b9d9c477';ctx.lineWidth=1.6*z;ctx.beginPath();ctx.moveTo(p.x-w*.27,p.y);ctx.lineTo(p.x+w*.20,p.y+2*z);ctx.stroke();return}
  if(!visible){if(noise(r,c)>.84)drawTree(p.x,p.y,Math.max(.5,z*.72));return}
  if(te==='field'&&noise(r,c)>.12)drawField(p.x,p.y,z*.75);
@@ -1398,7 +1402,7 @@ function v4NetworkPairs(){let key=s.buildings.map(b=>b.uid+':'+b.type+':'+b.r+':
 }
 const v4OldDrawTile=drawTile;
 drawTile=function(r,c,t){v4OldDrawTile(r,c,t);
- if(Math.hypot(r-mid,c-mid)>3.5+s.phase*1.25||isRiver(r,c))return;
+ if(Math.hypot(r-mid,c-mid)>99||isRiver(r,c))return;
  const n=noise(r+3,c+13);if(n>.82&&n<.87){let p=project(r,c);let z=s.camera.zoom;ctx.fillStyle='#d7d18e';for(let i=0;i<4;i++){let xx=p.x+Math.sin(i*2.4+n*4)*11*z,yy=p.y+Math.cos(i*2.4)*4*z;ctx.fillRect(xx,yy,1.8*z,1.8*z)}}
 };
 function v4DrawRoutes(now){let links=v4NetworkPairs();if(!links.length)return;const z=s.camera.zoom;
@@ -1729,7 +1733,7 @@ function building(b,x,y,z,t){g.save();g.translate(x,y);const lev=Math.min(3,Math
 }
 // Naturally shaded low-poly grass. Keep the original game's tile positioning & collision intact.
 function tile(r,c,t){const p=project(r,c),z=s.camera.zoom,te=terrain(r,c);if(p.x<-65*z||p.x>viewport.w+65*z||p.y<-65*z||p.y>viewport.h+55*z)return;
- const d=Math.hypot(r-mid,c-mid),visible=d<=3.5+s.phase*1.25;let n=noise(r,c),w=TW*z,h=TH*z;
+ const d=Math.hypot(r-mid,c-mid),visible=d<=99;let n=noise(r,c),w=TW*z,h=TH*z;
  const variants={grass:['#78ae79','#80b382','#85b987','#7eae78','#89b887'],field:['#bdab6d','#c8b97d','#b9ab78','#ccb985'],forest:['#5a946c','#6b9d73','#699f75','#609773'],rock:['#8b9b84','#9da58e','#869a89'],river:['#6faeb5','#6baeba','#77b8c1']}[te];let color=variants[Math.floor(n*variants.length)];if(!visible&&te!=='river'){const quieter={grass:'#83ac8a',field:'#b9ae81',forest:'#72a183',rock:'#94a494'};color=quieter[te]||color;}
  poly([[p.x,p.y-h/2],[p.x+w/2,p.y],[p.x,p.y+h/2],[p.x-w/2,p.y]],color,'#32544616',.35);
  if(te==='river'){
@@ -2134,7 +2138,7 @@ window.v9SetGraphicsContext=function(context){g=context};
        if(p.x<0||p.x>viewport.w||p.y<130||p.y>viewport.h)continue;ctx.save();ctx.translate(p.x,p.y);ctx.scale(z,z);
        ctx.fillStyle='#9b8465';ctx.fillRect(-29,13,12,8);ctx.fillRect(-14,12,10,8);
        ctx.strokeStyle='#705d4a';ctx.lineWidth=1.6;for(let a=0;a<2;a++){ctx.strokeRect(-29+a*16,13,9,8)}ctx.restore();}}
-   if(now-effect.at<900){let p=project(effect.r,effect.c),v=(now-effect.at)/900;ctx.save();ctx.strokeStyle=`rgba(255,219,142,${1-v})`;ctx.lineWidth=2.2;ctx.beginPath();ctx.ellipse(p.x,p.y,20*z+30*v,10*z+16*v,0,0,2*Math.PI);ctx.stroke();ctx.restore();}
+   if(now-effect.at<900&&now>=effect.at){let p=project(effect.r,effect.c),v=(now-effect.at)/900;ctx.save();ctx.strokeStyle=`rgba(255,219,142,${1-v})`;ctx.lineWidth=2.2;ctx.beginPath();ctx.ellipse(p.x,p.y,20*z+30*v,10*z+16*v,0,0,2*Math.PI);ctx.stroke();ctx.restore();}
  };
  // The original upgrade flow already tests capital and industrial prerequisites.
  // Its success also highlights a visibly staged manor upgrade without a new 3D engine.
@@ -2773,12 +2777,23 @@ window.v9SetGraphicsContext=function(context){g=context};
     const isRail=(has(s,'rail')||count(s,'railway')>0)&&['coalMine','ironMine','steamFactory','spinner','weaving','railway','harbor'].includes(building.type);
     routeObjects.push({uid:building.uid,to:building,path:best,gate:bestGate,rail:isRail});
   }
+  // 철도역끼리 선로로 잇기 (가까운 역 순서대로)
+  const stations=s.buildings.filter(b=>b.type==='railway');
+  const gateOf=b=>{const a=window.industrialV15?.bounds?.(b.type,b.r,b.c)||{r0:b.r,r1:b.r,c0:b.c,c1:b.c};const out=[];
+    for(let cc=a.c0;cc<=a.c1;cc++)out.push({r:a.r1+1,c:cc},{r:a.r0-1,c:cc});for(let rr=a.r0;rr<=a.r1;rr++)out.push({r:rr,c:a.c1+1},{r:rr,c:a.c0-1});
+    return out.filter(p=>p.r>=1&&p.r<N-1&&p.c>=1&&p.c<N-1&&!blocked.has(gridKey(p.r,p.c)));};
+  if(stations.length>1){const left=stations.slice(1);let cur=stations[0];
+    while(left.length){left.sort((a,b)=>Math.hypot(a.r-cur.r,a.c-cur.c)-Math.hypot(b.r-cur.r,b.c-cur.c));const nx=left.shift();
+      let best=null;for(const ga of gateOf(cur))for(const gb of gateOf(nx)){const path=findRoute(ga,gb,blocked);if(path.length&&(!best||path.length<best.length))best=[ga,...path];}
+      if(best){for(const cell of best)routeSet.add(gridKey(cell.r,cell.c));routeObjects.push({uid:900000+nx.uid,to:nx,path:best,gate:best.at(-1),rail:true,link:true});}
+      cur=nx;}
+  }
   scenerySignature='';return routeObjects;
  }
  function screenRoute(route){const z=s.camera.zoom,arr=route.path.map(p=>project(p.r,p.c));
   // Stop at the front-facing entrance, not at the building's centre or beneath its roof.
   const gate=route.gate?project(route.gate.r,route.gate.c):project(route.to.r,route.to.c);arr.push({x:gate.x+2*z,y:gate.y+2*z});
-  if(arr.length){const origin=project(7,7);arr[0]={x:origin.x-13*z,y:origin.y+14*z};}return arr;
+  if(arr.length&&!route.link){const origin=project(7,7);arr[0]={x:origin.x-13*z,y:origin.y+14*z};}return arr;
  }
  function roadStroke(points,rail,z){if(points.length<2)return;
   ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);
@@ -3458,7 +3473,7 @@ window.v9SetGraphicsContext=function(context){g=context};
     const footprintScale={pasture:1.75,cottage:1,houses:1.48,spinner:1.53,watermill:1.54,weaving:1.52,steamFactory:1.72,coalMine:1.47,ironMine:1.47,railway:1.51,dock:1.50,harbor:1.54}[ty]||1;
     const w=rawW*footprintScale,h=rawH*footprintScale;
     ctx.save();ctx.translate(x,y);ctx.scale(1+Math.min(2,lv-1)*.035,1+Math.min(2,lv-1)*.035);
-    const plotFill=ty==='pasture'?'#87b77d':ty==='cottage'?'#93ad86':ty==='houses'?'#aeb497':ty==='dock'||ty==='harbor'?'#a9aa95':ty==='coalMine'||ty==='ironMine'?'#a8aa9b':ty==='steamFactory'?'#a9a08f':'#adb39a';
+    const plotFill=ty==='pasture'?'#87b77d':ty==='cottage'?'#93ad86':ty==='houses'?'#aeb497':ty==='dock'||ty==='harbor'?'#a9aa95':ty==='coalMine'?'#8b908c':ty==='ironMine'?'#bba08a':ty==='steamFactory'?'#a9a08f':'#adb39a';
     const boundary=plot(w,h,plotFill,'#90a27e');
     if(ty==='pasture'){
       pastureFence(boundary,false);
@@ -3492,6 +3507,19 @@ window.v9SetGraphicsContext=function(context){g=context};
       isoBuilding(15,-3,15,11,10,{left:'#ab9075',front:'#c3a88a'}, {left:'#7c6251',right:'#685346'},3);
       poly([[-23,9],[-16,5],[-9,9],[-15,12]],ty==='coalMine'?'#434847':'#9c856e');
       if(lv>1)ln(-23,12,0,19,'#756450',1.4);
+      if(ty==='coalMine'){
+        // 탄광: 검은 석탄 더미와 석탄 수레
+        poly([[-25,10],[-17,-1],[-8,10]],'#1f2223','#111');poly([[-19,12],[-12,3],[-4,12]],'#2b2f30','#151718');
+        ctx.fillStyle='#5b6466';ctx.fillRect(-15,2,2,2);ctx.fillRect(-21,5,2,1.5);
+        poly([[5,13],[16,8],[22,11],[11,16]],'#4a3b2f','#2f251d');poly([[7,12],[15,8.5],[19,10.5],[11,14]],'#17191a');
+      }else{
+        // 철광산: 붉은 철광석 더미와 불빛이 도는 제련 용광로
+        poly([[-25,10],[-17,-1],[-8,10]],'#9a4b2f','#6e321f');poly([[-19,12],[-12,3],[-4,12]],'#b5623c','#7c3a24');
+        ctx.fillStyle='#e0915e';ctx.fillRect(-15,3,2,2);ctx.fillRect(-21,6,2,1.5);
+        poly([[20,6],[22,-26],[30,-26],[32,6]],'#a4513b','#6e3426');poly([[21,-26],[31,-26],[30,-29],[22,-29]],'#7c3a2c');
+        const glow=.55+.35*Math.sin((t||0)*.004);ctx.fillStyle=`rgba(255,${150+Math.round(60*glow)},60,${glow})`;ctx.beginPath();ctx.ellipse(26,-29,4.5,2,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(255,170,80,.85)';ctx.fillRect(24.5,-3,3,4);
+      }
     } else if(ty==='railway'){
       for(let i=0;i<3;i++){
         const yLine=6+i*3;
@@ -3529,7 +3557,7 @@ window.v9SetGraphicsContext=function(context){g=context};
  const TAU=Math.PI*2;
  const oldCanPlace=canPlace, oldFindSpot=findSpot, oldDrawMap=drawMap;
  const farmVillage=[{r:9,c:10,w:1,h:1},{r:10,c:9,w:1,h:1}], manor={r:4,c:11,w:3,h:3},quarter={r:10,c:12,w:3,h:3};
- const FOOTPRINTS={pasture:[2,2],cottage:[1,1],dock:[2,2],houses:[2,2],coalMine:[2,2],ironMine:[2,2],spinner:[2,2],watermill:[2,2],weaving:[2,2],steamFactory:[3,3],railway:[2,3],harbor:[2,3]};
+ const FOOTPRINTS={pasture:[2,2],cottage:[1,1],dock:[2,2],houses:[2,2],coalMine:[2,2],ironMine:[2,2],spinner:[2,2],watermill:[3,3],weaving:[3,3],steamFactory:[4,4],railway:[3,4],harbor:[3,4],crystalPalace:[5,5]};
  function footprint(type){const d=FOOTPRINTS[type]||[1,1];return {w:d[0],h:d[1]};}
  function bounds(type,r,c){const {w,h}=footprint(type);const r0=r-Math.floor((h-1)/2),c0=c-Math.floor((w-1)/2);return {r0,c0,r1:r0+h-1,c1:c0+w-1,w,h};}
  function rect(r,c,w,h){return {r0:r,c0:c,r1:r+h-1,c1:c+w-1};}
@@ -4448,7 +4476,7 @@ window.v9SetGraphicsContext=function(context){g=context};
    if(!force&&signature===lastCardKey)return;lastCardKey=signature;
    card.innerHTML=`<header><b>${B[b.type].icon} ${B[b.type].name} <span>Lv.${b.level}</span></b><button data-v18-close aria-label="건물 관리 닫기">×</button></header>
    <div class="v18-card-info"><span>👷 ${b.workers}/${cap}명</span><span>${status(b)}</span></div>
-   <div class="v18-card-actions"><button data-v18-upgrade ${b.level>=3||s.coins<price?'disabled':''}>${b.level>=3?'최대 강화':`🏗 증축 £${price}`}</button><button data-v18-plus ${b.workers>=cap||s.hired<=activeWorkers(s)?'disabled':''}>+ 노동자</button><button data-v18-minus ${b.workers===0?'disabled':''}>− 노동자</button><button data-v18-details>관리 더보기</button></div>`;
+   <div class="v18-card-actions"><button data-v18-upgrade ${b.level>=3||s.coins<price?'disabled':''}>${b.level>=3?'최대 강화':`🏗 증축 £${price}`}</button><button data-v18-plus ${b.workers>=cap||s.hired<=activeWorkers(s)?'disabled':''}>+ 노동자</button><button data-v18-minus ${b.workers===0?'disabled':''}>− 노동자</button><button data-v18-details>관리 더보기</button>${has(s,'massUpgrade')?(()=>{const m=window.industrialV33?.massPlan(b.type);return m&&m.list.length?`<button data-v33-massup class="v33-massup" ${s.coins<buildingUpgradeCost(m.list[0])?'disabled':''}>⏫ 같은 건물 전체 증축 (${m.list.length}곳 · 최대 £${m.total.toLocaleString('ko-KR')})</button>`:''})():''}${b.type==='crystalPalace'&&b.workers<cap?`<button data-v38-fill class="v33-massup">👷 수정궁에 노동자 가득 채우기 (${(cap-b.workers).toLocaleString('ko-KR')}명 더)</button>`:''}<button data-v18-remove class="v32-remove">🗑 철거</button></div>`;
    card.classList.remove('hidden');
  }
  card.addEventListener('click',e=>{
@@ -4459,6 +4487,9 @@ window.v9SetGraphicsContext=function(context){g=context};
    if(btn.hasAttribute('data-v18-plus'))assign(b.uid,1);
    if(btn.hasAttribute('data-v18-minus'))assign(b.uid,-1);
    if(btn.hasAttribute('data-v18-details')){card.classList.add('hidden');panelOpen('workers');return;}
+   if(btn.hasAttribute('data-v38-fill')){window.industrialV38?.fill(b.uid);cardRender(true);return;}
+   if(btn.hasAttribute('data-v33-massup')){window.industrialV33?.upgradeAll(b.type);cardRender(true);return;}
+   if(btn.hasAttribute('data-v18-remove')){if(window.industrialV32?.demolish(b.uid))chosen=null;return;}
    cardRender(true);
  });
  const touchOld=touchAt;
@@ -5671,7 +5702,9 @@ function explainBuild(type){const b=B[type];if(!b)return null;
   if(b.unlock&&!has(s,b.unlock))return {text:`${b.name}: ${T[b.unlock]?.name||'선행 기술'} 연구가 필요합니다.`,button:'연구하기',onClick:()=>openTab('tech',`[data-tech="${b.unlock}"]`)};
   const lack=b.cost-s.coins;
   if(lack>0)return {text:`${b.name} 건설 자본이 ${moneyStr(lack)} 부족합니다.`,button:'수익 확인',onClick:()=>openTab('history')};
-  return {text:`${b.name} 건설 가능한 부지가 부족합니다. 도시 전체 보기로 확인해 주세요.`,button:'지도 보기',onClick:()=>{$('v19Fit')?.click();}};
+  const cap=window.industrialV25Rules?.check?.(s,type);if(cap&&!cap.ok)return {text:`${b.name}: ${cap.reason}`,button:'저택 보기',onClick:()=>openTab('estate')};
+  if(findSpot(type))return {text:`그 자리에는 ${b.name}을(를) 지을 수 없습니다. 강·다른 건물(한 칸 간격)·저택과 겹치지 않는 빈 땅을 고르세요.`,button:'자동 건설',onClick:()=>{build(type)}};
+  return {text:`${b.name}을(를) 지을 빈 땅이 지도에 남아 있지 않습니다. 오래된 건물을 철거해 보세요.`,button:'지도 보기',onClick:()=>{$('v19Fit')?.click();}};
 }
 function explainTech(id){const t=T[id];if(!t)return null;
   if(has(s,id))return{text:`${t.name}: 이미 연구를 완료했습니다.`};
@@ -5934,10 +5967,10 @@ window.industrialV23={version:VERSION,explainBuild,explainTech,explainUpgrade,ex
 // Pure chapter rules shared by UI, action validation and camera setters.
 (()=>{
  const COPIES=Object.freeze([4,4,5,5,6,6,7]);
- const ZMIN=Object.freeze([1.15,1.05,.95,.82,.72,.62,.52]);
+ const ZMIN=Object.freeze([1.0,.86,.74,.63,.53,.45,.38]);
  const ZMAX=Object.freeze([1.75,1.85,1.95,2.05,2.15,2.30,2.50]);
- const PX=Object.freeze([170,200,230,270,310,350,390]);
- const PY=Object.freeze([95,115,135,160,190,220,250]);
+ const PX=Object.freeze([300,420,560,700,860,1020,1200]);
+ const PY=Object.freeze([260,380,520,660,820,980,1150]);
  const clamp=(x,a,b)=>Math.max(a,Math.min(b,Number.isFinite(Number(x))?Number(x):a));
  const chapter=st=>clamp(Math.round(st.v5?.mansionLevel||1),1,7);
  const buildings=st=>st.buildings.filter(b=>b.type!=='houses');
@@ -6073,9 +6106,10 @@ window.industrialV23={version:VERSION,explainBuild,explainTech,explainUpgrade,ex
    const names=missing.map(type=>B[type].name);
    const remainder=names.length?' · 남음: '+names[0]+(names.length>1?' 외 '+(names.length-1)+'종':''):'';
    const facilities=s.buildings.filter(b=>(V5_BUILD_GATES[b.type]||1)<=lv&&B[b.type]?.cap>0);
-   const placed=facilities.reduce((n,b)=>n+Math.min(b.workers,B[b.type].cap),0),needed=facilities.reduce((n,b)=>n+B[b.type].cap,0);
-   const unfilled=facilities.find(b=>b.workers<B[b.type].cap);
-   return [...rows,[`모든 건물 종류별 건설 ${types.length-missing.length}/${types.length}종${remainder}`,missing.length===0],[`모든 시설 인력 배치 ${placed}/${needed}명`+(unfilled?' · '+B[unfilled.type].name+' 인력 부족':''),facilities.length>0&&!unfilled]];
+   const baseCap=b=>Math.ceil(Math.min(B[b.type].cap,window.industrialV28Rules?.baseCaps?.[b.type]||B[b.type].cap)*.5);
+   const placed=facilities.reduce((n,b)=>n+Math.min(b.workers,baseCap(b)),0),needed=facilities.reduce((n,b)=>n+baseCap(b),0);
+   const unfilled=facilities.find(b=>b.workers<baseCap(b));
+   return [...rows,[`모든 건물 종류별 건설 ${types.length-missing.length}/${types.length}종${remainder}`,missing.length===0],[`모든 시설 가동 인력 (기본 정원의 절반) ${placed}/${needed}명`+(unfilled?' · '+B[unfilled.type].name+' 인력 부족':''),facilities.length>0&&!unfilled]];
  };
  const priorUI=updateUI;
  updateUI=function(...args){const result=priorUI(...args),joy=happiness(s);
@@ -6161,7 +6195,7 @@ window.industrialV23={version:VERSION,explainBuild,explainTech,explainUpgrade,ex
  };
  function polygonOf(type,r,c){return window.industrialV15.plotPolygon(type,r,c);}
  function silhouette(b){
-   const p=project(b.r,b.c),z=s.camera.zoom,lv=Math.max(1,b.level||1);
+   const big=window.industrialV36?.big?.(b)||{k:1,dx:0,dy:0};const p0=project(b.r,b.c),z0=s.camera.zoom,p={x:p0.x+big.dx*z0,y:p0.y+big.dy*z0},z=z0*big.k,lv=Math.max(1,b.level||1);
    const dimensions={pasture:[36,35],cottage:[32,49],dock:[40,57],harbor:[43,62],coalMine:[34,67],ironMine:[34,67],spinner:[40,73],watermill:[43,64],weaving:[42,70],steamFactory:[48,93],railway:[42,66]};
    const [width,baseH]=dimensions[b.type]||[35,55],w=width*z,high=(baseH+(lv-1)*12)*z;
    return [[-w*.9,4*z],[0,14*z],[w*.9,4*z],[w*.75,-high*.65],[0,-high],[-w*.75,-high*.65]].map(([x,y])=>({x:p.x+x,y:p.y+y}));
@@ -6480,7 +6514,7 @@ button:is(.v29-close,.round-close,.v12-x,.v10-close,.v21-close,[aria-label*="닫
  window.addEventListener('popstate',onBack);
  function refreshSize(){document.documentElement.classList.toggle('v29-fullscreen',!!(document.fullscreenElement||document.webkitFullscreenElement));if(typeof resize==='function')resize();scheduleDecorate();}
  document.addEventListener('fullscreenchange',refreshSize);document.addEventListener('webkitfullscreenchange',refreshSize);
- const badge=document.querySelector('.version-badge');if(badge)badge.textContent='CANVAS v31.0';
+ const badge=document.querySelector('.version-badge');if(badge)badge.textContent='CANVAS v40.0';
  document.title='산업혁명: 부의 시대';
  window.industrialV29={version:'29.0',enterFullscreen,closeTopMenu,armHistory};
  decorate();
@@ -6611,6 +6645,734 @@ body:has(#v8Tour:not(.hidden)) :is(.hud,.mission-bar,.map-ui,.map-controls,#toas
    lastScale=k;
  },1000);
  window.industrialV31={version:'31.0',scale,capOf,STEPS};
+})();
+</script>
+
+<style id="v32Style">#v18BuildingCard .v18-card-actions button.v32-remove{background:#5b2f33!important;border-color:#c97a7e88!important;color:#ffdcdc!important;grid-column:1/-1}</style>
+<script id="v32OpenLand">
+/* v32 | 전체 부지 개방 + 건물 철거(취소) */
+(()=>{
+ 'use strict';
+ // 건물 바닥 크기 (v15 기준과 동일)
+ const FOOT={pasture:[2,2],cottage:[1,1],dock:[2,2],houses:[2,2],coalMine:[2,2],ironMine:[2,2],spinner:[2,2],watermill:[3,3],weaving:[3,3],steamFactory:[4,4],railway:[3,4],harbor:[3,4],crystalPalace:[5,5]};
+ function bounds(type,r,c){const [w,h]=FOOT[type]||[1,1];const r0=r-Math.floor((h-1)/2),c0=c-Math.floor((w-1)/2);return {r0,c0,r1:r0+h-1,c1:c0+w-1};}
+ const overlap=(a,b)=>a.r0<=b.r1&&a.r1>=b.r0&&a.c0<=b.c1&&a.c1>=b.c0;
+ const rect=(r0,c0,r1,c1)=>({r0,c0,r1,c1});
+ // 지도에 고정으로 그려지는 장식(마을 집 2채, 자본가 저택, 노동자 마을)만 피함
+ function landmarks(){const list=[rect(9,10,9,10),rect(10,9,10,9),rect(3,10,5,12)];if((s.phase||0)>=3)list.push(rect(9,11,11,13));return list;}
+ // 전체 부지에서 건설 가능: 지도 경계·강·다른 건물과의 겹침·고정 장식만 검사
+ canPlace=function(id,r,c){
+   const b=bounds(id,r,c);
+   if(b.r0<1||b.c0<1||b.r1>=N-1||b.c1>=N-1)return false;
+   let river=0;for(let rr=b.r0;rr<=b.r1;rr++)for(let cc=b.c0;cc<=b.c1;cc++)if(isRiver(rr,cc))river++;
+   if(river>(id==='watermill'?1:(id==='dock'||id==='harbor')?2:0))return false;
+   // 수력 방적공장: 강에서 2칸 이내(수로) / 항구·무역소: 강에 맞닿아야 함
+   const nearWater=(dist)=>{for(let rr=b.r0-dist;rr<=b.r1+dist;rr++)for(let cc=b.c0-dist;cc<=b.c1+dist;cc++)if(isRiver(rr,cc))return true;return false;};
+   if(id==='watermill'&&!river&&!nearWater(2))return false;
+   if((id==='harbor'||id==='dock')&&!river&&!nearWater(1))return false;
+   const moving=window.industrialV27?.movingUid;
+   // 건물끼리는 한 칸만 띄워 그림이 겹치지 않게 함
+   for(const o of s.buildings){if(o.uid===moving)continue;const ob=bounds(o.type,o.r,o.c),g=window.industrialV35?.autoGap||1;if(overlap(b,{r0:ob.r0-g,c0:ob.c0-g,r1:ob.r1+g,c1:ob.c1+g}))return false;}
+   for(const l of landmarks())if(overlap(b,l))return false;
+   return true;
+ };
+ // 건물 철거(취소)
+ const upgradeSpent=b=>{const base=B[b.type]?.cost||0;let sum=0;if((b.level||1)>=2)sum+=Math.ceil(base*.72);if((b.level||1)>=3)sum+=Math.ceil(base*1.22);return sum;};
+ function refundOf(b){
+   if(s.undo&&s.undo.uid===b.uid&&s.elapsed-s.undo.at<=30)return {amount:Math.round((s.undo.cost||B[b.type].cost)+upgradeSpent(b)),full:true};
+   return {amount:Math.round(((B[b.type]?.cost||0)+upgradeSpent(b))*.5),full:false};
+ }
+ function demolish(uid){
+   const idx=s.buildings.findIndex(b=>b.uid===uid);if(idx<0)return false;
+   const b=s.buildings[idx],info=B[b.type],ref=refundOf(b);
+   const msg=`${info.icon} ${info.name}을(를) 철거할까요?\n\n· 환급: £${ref.amount} (${ref.full?'건설 30초 이내 · 전액':'건설비·증축비의 50%'})\n· 배치된 노동자 ${b.workers}명은 미배치로 돌아갑니다.`;
+   if(!window.confirm(msg))return false;
+   s.buildings.splice(idx,1);
+   if(s.undo&&s.undo.uid===uid)s.undo=null;
+   s.coins+=ref.amount;
+   if(selectedBuilding===uid)selectedBuilding=null;
+   if(typeof v9GroundKey!=='undefined')v9GroundKey='';
+   try{window.industrialV17?.getNetwork?.();}catch(e){}
+   document.getElementById('v18BuildingCard')?.classList.add('hidden');
+   document.getElementById('v3Quick')?.classList.add('hidden');
+   document.getElementById('v12Select')?.classList.add('hidden');
+   toast(`🗑 ${info.name} 철거 · £${ref.amount} 환급`);
+   updateUI(true);save();return true;
+ }
+ window.industrialV32={version:'32.0',demolish,refundOf,bounds};
+})();
+</script>
+
+<style id="v33Style">
+#v33News{position:absolute;inset:0;z-index:230;display:flex;align-items:center;justify-content:center;background:rgba(5,18,26,.64);padding:20px}
+#v33News.hidden{display:none!important}
+#v33News .v33-card{width:min(100%,360px);max-height:calc(100% - 20px);overflow-y:auto;background:linear-gradient(160deg,#18404b,#0d2a37);border:1px solid #e1c48a99;border-radius:18px;padding:20px 18px 16px;color:#f3ead2;text-align:center;box-shadow:0 18px 40px #02121a99}
+#v33News small{display:block;font-size:10px;letter-spacing:1.5px;color:#e5c98d;font-weight:800}
+#v33News .v33-icon{font-size:44px;margin:8px 0 2px;line-height:1.2}
+#v33News h2{margin:4px 0 10px;font-size:20px;color:#ffe2a6;line-height:1.35}
+#v33News p{margin:0 0 6px;font-size:13.5px;line-height:1.65;color:#dbe8e4}
+#v33News ul{text-align:left;font-size:12.5px;color:#cfe0dc;margin:10px 0 0;padding:10px 12px 10px 28px;line-height:1.7;background:#0a222d99;border-radius:10px}
+#v33News .v33-unlock{margin-top:8px;font-size:12.5px;color:#9fe0c4;font-weight:700}
+#v33News button{margin-top:14px;width:100%;min-height:48px;border:0;border-radius:12px;background:#e7be72;color:#1d2f33;font-weight:900;font-size:15px}
+#v33News button:disabled{background:#3f5960;color:#c9d6d4;opacity:1;cursor:default}
+body:has(#v33News:not(.hidden)) :is(#v19UpgradeScene,#v12EraFlash,#v3Chapter,#v4Help){display:none!important}
+#v18BuildingCard .v18-card-actions button.v33-massup{background:#2f5f4f!important;border-color:#8fd3b088!important;color:#e6fff2!important;grid-column:1/-1}
+</style>
+<script id="v33Features">
+/* v33 | 읽을 수 있는 뉴스·챕터 안내, 전체 증축 연구 */
+(()=>{
+ 'use strict';
+ const app=document.getElementById('app');
+ // ── 뉴스·챕터 안내 창: 3초 후 [계속 발전하기] 버튼이 활성화되고, 누르기 전까지 사라지지 않음
+ const box=document.createElement('section');box.id='v33News';box.className='hidden';box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');
+ box.innerHTML='<div class="v33-card"><small id="v33Kicker"></small><div class="v33-icon" id="v33Icon"></div><h2 id="v33Title"></h2><div id="v33Body"></div><button type="button" id="v33Continue" disabled>계속 발전하기</button></div>';
+ app.append(box);
+ const btn=box.querySelector('#v33Continue');
+ const queue=[];let open=false,countdown=null;
+ const HISTORIC=new Set(['india','enclosure','jenny','rail','steam','capitalism']);
+ // 기존 '역사적 사건' 창도 3초 뒤에 [계속 발전시키기] 버튼이 눌리도록
+ const evOverlay=document.getElementById('eventOverlay'),evBtn=document.getElementById('eventClose');
+ let evTimer=null,evLabel='';
+ function armEvent(){
+   if(!evOverlay||!evBtn||evOverlay.classList.contains('hidden'))return;
+   const key=document.getElementById('eventTitle')?.textContent||'';if(evBtn.dataset.v33Armed===key)return;
+   evBtn.dataset.v33Armed=key;evLabel=evLabel||evBtn.textContent;let left=3;
+   evBtn.disabled=true;evBtn.textContent=`계속 발전시키기 (${left})`;clearInterval(evTimer);
+   evTimer=setInterval(()=>{left--;if(left>0){evBtn.textContent=`계속 발전시키기 (${left})`;return;}clearInterval(evTimer);evBtn.disabled=false;evBtn.textContent=evLabel;},1000);
+ }
+ if(evOverlay){new MutationObserver(armEvent).observe(evOverlay,{attributes:true,attributeFilter:['class']});new MutationObserver(armEvent).observe(document.getElementById('eventTitle'),{childList:true,characterData:true,subtree:true});}
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function next(){
+   if(!queue.length){open=false;box.classList.add('hidden');if(s.started&&!s.finished)gameRunning=s.gameSpeed!==0;return;}
+   const item=queue.shift();open=true;
+   box.querySelector('#v33Kicker').textContent=item.kicker;
+   box.querySelector('#v33Icon').textContent=item.icon;
+   box.querySelector('#v33Title').textContent=item.title;
+   box.querySelector('#v33Body').innerHTML=item.body;
+   box.classList.remove('hidden');gameRunning=false;
+   let left=3;btn.disabled=true;btn.textContent=`계속 발전하기 (${left})`;
+   clearInterval(countdown);
+   countdown=setInterval(()=>{left--;if(left>0){btn.textContent=`계속 발전하기 (${left})`;return;}
+     clearInterval(countdown);btn.disabled=false;btn.textContent='계속 발전하기 →';btn.focus({preventScroll:true});},1000);
+ }
+ btn.addEventListener('click',()=>{if(btn.disabled)return;next();});
+ function push(item){if(s.teacher||s.finished||!s.started)return;queue.push(item);if(!open)next();}
+ // 신문 기사: 연구 완료 때 제목만 2.5초 띠로 지나가던 것을 기사 전체로 보여 줌
+ const oldPaper=v4Newspaper;
+ v4Newspaper=function(id,...rest){
+   const seen=!!s.v4?.newsSeen?.includes(id);const result=oldPaper(id,...rest);
+   const n=v4NewsData.find(x=>x.id===id);
+   // 역사적 사건 창이 따로 뜨는 연구는 그 창 하나만 보여 줌 (중복 방지)
+   if(!seen&&n&&id!=='start'&&id!=='expo'&&!HISTORIC.has(id)){
+     document.getElementById('v4Help')?.classList.add('hidden');
+     push({kicker:`📰 THE INDUSTRIAL TIMES · ${n.year}`,icon:n.icon,title:n.title,body:`<p>${esc(n.desc)}</p>`});
+   }
+   return result;
+ };
+ // 챕터(저택) 승급: 1.5초 만에 사라지던 연출 대신 읽을 수 있는 안내
+ const oldEstate=v5UpgradeEstate;
+ v5UpgradeEstate=function(...args){
+   const before=v5Level();const result=oldEstate(...args);const lv=v5Level();
+   if(lv>before){const ch=V5_CHAPTERS[lv-1];let reqs=[];try{reqs=ch.requirements().map(r=>r[0]);}catch(e){}
+     const k=window.industrialV31?.scale?.();
+     push({kicker:`CHAPTER ${lv} / 7 · ${ch.year}`,icon:ch.icon,title:`제${lv}장 · ${ch.name}`,
+       body:`<p>${esc(ch.hint)}</p><div class="v33-unlock">🔓 새로 열림: ${esc(ch.unlock)}</div>${k&&k>1?`<div class="v33-unlock">🏭 시설당 고용 한도 기본의 ${k}배</div>`:''}${lv>1?`<div class="v33-unlock">🗺 도시 경계 확장 · 지도를 더 멀리 축소해 볼 수 있어요</div>`:''}${reqs.length?`<ul>${reqs.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`:''}`});
+   }
+   return result;
+ };
+ // ── 전체 증축 연구
+ const MASS={id:'massUpgrade',name:'공장 표준화 · 일괄 증축',icon:'🏗️',cost:260,req:['저택 Lv.3 (제3장)','증축한 건물 1개'],
+   test:st=>v5Level()>=3&&st.buildings.some(b=>(b.level||1)>=2),
+   details:'설계와 부품을 표준화해 같은 종류의 건물을 한꺼번에 증축합니다. 연구 후 건물 관리 창에 [같은 건물 전체 증축] 버튼이 생깁니다.'};
+ if(!T[MASS.id]){const at=TECHS.findIndex(t=>t.id==='capitalism');TECHS.splice(at<0?TECHS.length:at,0,MASS);T[MASS.id]=MASS;}
+ if(!v4NewsData.some(n=>n.id===MASS.id))v4NewsData.push({id:MASS.id,icon:'🏗️',year:'19세기',title:'표준화된 기계와 부품, 공장 증설을 앞당기다',desc:'같은 규격의 부품과 기계를 대량으로 만들면서 공장을 한꺼번에 늘리고 개량하기 쉬워졌습니다. 이제 같은 종류의 건물을 한 번에 증축할 수 있습니다.'});
+ function massPlan(type){const list=s.buildings.filter(b=>b.type===type&&(b.level||1)<3).sort((a,b)=>(a.level||1)-(b.level||1));
+   return {list,total:list.reduce((n,b)=>n+buildingUpgradeCost(b),0)};}
+ function upgradeAll(type){
+   if(!has(s,MASS.id))return;
+   const {list}=massPlan(type);let done=0,spent=0;
+   for(const b of list){const price=buildingUpgradeCost(b),lv=b.level||1;if(s.coins<price)break;upgradeBuilding(b.uid);if((b.level||1)>lv){done++;spent+=price;}}
+   if(done)toast(`🏗 ${B[type].name} ${done}곳 일괄 증축 · £${spent.toLocaleString('ko-KR')}`);
+   else toast(list.length?'증축할 자본이 부족합니다.':'모든 건물이 이미 최대 단계입니다.',true);
+   updateUI(true);save();
+ }
+ window.industrialV33={version:'33.0',push,massPlan,upgradeAll};
+})();
+</script>
+
+<style id="v34TutorialStyle">
+/* v34 | 따라 하기 튜토리얼: 지정 버튼만 밝게, 나머지는 어둡게 막음 */
+#v28Tutorial{display:none!important}
+#v34Hole{position:fixed;z-index:99990;pointer-events:none;border-radius:14px;box-shadow:0 0 0 200vmax rgba(3,13,19,.66);outline:3px solid #f3cf7f;outline-offset:2px;transition:left .18s ease,top .18s ease,width .18s ease,height .18s ease;animation:v34Pulse 1.3s ease-in-out infinite}
+#v34Hole.v34-full{left:50%!important;top:50%!important;width:0!important;height:0!important;outline:none;animation:none}
+#v34Hole[hidden],#v34Card[hidden]{display:none!important}
+@keyframes v34Pulse{0%,100%{outline-color:#f3cf7f}50%{outline-color:#fff3cf}}
+#v34Card{position:fixed;z-index:99991;left:50%;transform:translateX(-50%);width:min(340px,calc(100vw - 24px));background:#143844;border:1.5px solid #f0cd82;border-radius:14px;padding:12px 14px;color:#f6efd9;box-shadow:0 12px 30px #01101899;font-size:14px;line-height:1.55}
+#v34Card b{display:block;color:#ffd98e;font-size:12px;letter-spacing:.3px;margin-bottom:3px}
+#v34Card p{margin:0}
+#v34Card .v34-hint{margin-top:6px;font-size:12px;color:#a9d8c8}
+#v34Card button{margin-top:10px;width:100%;min-height:44px;border:0;border-radius:10px;background:#e7be72;color:#1d2f33;font-weight:900;font-size:15px}
+#v34Card .v34-arrow{position:absolute;left:var(--ax,50%);width:14px;height:14px;background:#143844;border:1.5px solid #f0cd82;transform:translateX(-50%) rotate(45deg)}
+#v34Card.v34-below .v34-arrow{top:-8px;border-right:0;border-bottom:0}
+#v34Card.v34-above .v34-arrow{bottom:-8px;border-left:0;border-top:0}
+#v34Card.v34-center .v34-arrow{display:none}
+</style>
+<script id="v34Tutorial">
+(()=>{
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const q=sel=>document.querySelector(sel);
+ const shown=el=>!!el&&!el.hidden&&!el.classList.contains('hidden')&&el.getClientRects().length>0&&getComputedStyle(el).visibility!=='hidden';
+ const dock=tab=>q(`#v11Dock [data-v11-tab="${tab}"]`);
+ const cottage=()=>s.buildings.find(b=>b.type==='cottage');
+ const hole=document.createElement('div');hole.id='v34Hole';hole.hidden=true;
+ const card=document.createElement('section');card.id='v34Card';card.hidden=true;card.setAttribute('role','dialog');card.setAttribute('aria-live','polite');
+ card.innerHTML='<i class="v34-arrow"></i><b id="v34Step"></b><p id="v34Text"></p><p class="v34-hint" id="v34Hint"></p><button type="button" id="v34Next" hidden>시작하기 →</button>';
+ document.body.append(hole,card);
+ // 상태 저장
+ const T=()=>(s.v34||={active:false,step:0,done:false});
+ // 지도 위 작업장 영역 (화면 좌표)
+ function buildingRect(){const b=cottage();if(!b)return null;const cr=$('mapCanvas').getBoundingClientRect(),p=project(b.r,b.c),z=s.camera.zoom;
+   const w=Math.max(84,58*z),h=Math.max(76,50*z);return {left:cr.left+p.x-w/2,top:cr.top+p.y-h*.68,width:w,height:h,right:cr.left+p.x+w/2,bottom:cr.top+p.y+h*.32};}
+ function centerOn(b){const cr=$('mapCanvas').getBoundingClientRect(),p=project(b.r,b.c);s.camera.panX+=cr.width/2-p.x;s.camera.panY+=cr.height*.42-p.y;}
+ // 단계: target = 누를 대상, done = 완료 조건
+ const STEPS=[
+  {text:'아래 <b style="display:inline;color:#ffd98e">🏗 건설</b> 버튼을 눌러 건설 메뉴를 여세요.',target:()=>dock('build'),done:()=>shown($('v11BuildTray'))},
+  {text:'<b style="display:inline;color:#ffd98e">🧥 모직물 작업장</b>을 고르세요. 양모를 옷감으로 만들어 팔아 돈을 버는 첫 공장입니다.',target:()=>q('#v11BuildTray [data-v11-build="cottage"]'),done:()=>shown($('v11BuildDetails'))&&!!q('#v11BuildRail [data-v11-build="cottage"].selected, #v11BuildTray [data-v11-build="cottage"].selected')},
+  {text:'<b style="display:inline;color:#ffd98e">자동 건설</b>을 누르면 알맞은 빈 땅에 작업장이 지어집니다.',target:()=>q('#v11BuildDetails:not(.hidden) [data-v11-do="auto"]'),done:t=>s.buildings.filter(b=>b.type==='cottage').length>(t.cottageBase||0),start:()=>{const c=B.cottage.cost;if(s.coins<c)s.coins=c+5;}},
+  {text:'공장을 돌릴 사람이 필요합니다. 아래 <b style="display:inline;color:#ffd98e">👥 노동</b> 버튼을 누르세요.',target:()=>dock('workers'),done:()=>shown($('v12Workers')),start:()=>{q('#v11BuildClose')?.click();q('#v11DetailsClose')?.click();}},
+  {text:'<b style="display:inline;color:#ffd98e">+1명</b>을 눌러 노동자 한 명을 고용하세요.',target:()=>q('#v12Workers [data-v12-hire="1"]')||q('#v12Workers [data-v12-hire]'),done:t=>s.hired>t.base,start:t=>{t.base=s.hired;if(s.coins<30)s.coins=30;}},
+  {text:'<b style="display:inline;color:#ffd98e">자동 배치</b>를 눌러 고용한 노동자를 공장에 보내세요.',target:()=>q('#v12Workers [data-v12-assign]'),done:t=>activeWorkers(s)>t.base,start:t=>{t.base=activeWorkers(s)}},
+  {text:'빨간 <b style="display:inline;color:#ffd98e">×</b> 버튼으로 노동 창을 닫으세요.',target:()=>q('#v12Workers [data-v12-close]'),done:()=>!shown($('v12Workers'))},
+  {text:'지도에서 방금 지은 <b style="display:inline;color:#ffd98e">모직물 작업장</b>을 누르세요.',target:()=>'map',done:()=>shown($('v18BuildingCard'))&&selectedBuilding===cottage()?.uid,start:()=>{const b=cottage();if(b)centerOn(b);}},
+  {text:'<b style="display:inline;color:#ffd98e">🏗 증축</b>을 누르세요. 증축하면 같은 건물의 생산능력과 고용 인원이 늘어납니다.',hint:'나중에 연구하는 ‘공장 표준화’로 같은 건물을 한꺼번에 증축할 수도 있어요.',target:()=>q('#v18BuildingCard [data-v18-upgrade]'),done:()=>(cottage()?.level||1)>=2,start:()=>{const b=cottage();if(b){const price=buildingUpgradeCost(b);if(s.coins<price)s.coins=price+5;}}},
+  {text:'증축 완료! 빨간 <b style="display:inline;color:#ffd98e">×</b>로 건물 창을 닫으세요.',target:()=>q('#v18BuildingCard [data-v18-close]'),done:()=>!shown($('v18BuildingCard'))},
+  {text:'위의 <b style="display:inline;color:#ffd98e">▶ 1×</b> 버튼은 <b style="display:inline;color:#ffd98e">시간의 흐름</b>입니다. 눌러서 시간을 빠르게 해 보세요.',hint:'누를 때마다 1× → 2× → 4× → ⏸ 일시정지 → 1× 순서로 바뀝니다.',target:()=>$('speedButton'),done:t=>s.gameSpeed!==t.base,start:t=>{t.base=s.gameSpeed}},
+  {text:'마지막으로 아래 <b style="display:inline;color:#ffd98e">🏛 저택</b> 버튼을 누르세요. 다음 시대로 가기 위한 목표가 여기 있습니다.',target:()=>dock('estate'),done:()=>shown($('v5EstateOverlay'))},
+  {text:'저택의 목표를 모두 채우고 자본을 모아 <b style="display:inline;color:#ffd98e">저택을 증축</b>하면 다음 시대가 열립니다. 이제 직접 산업을 키워 보세요!',hint:'건물 증축 = 생산능력↑ · 저택 증축 = 다음 시대 · ▶ 버튼 = 시간 속도',target:()=>null,final:true}
+ ];
+ const LAST=STEPS.length-1;
+ const RESUME={1:0,2:0,4:3,5:3,6:6,8:7,9:9};
+ let current=-1,allowRect=null,allowEl=null,missingSince=0,ticking=false;
+ function enter(i){const t=T();t.step=i;current=i;const st=STEPS[i];st.start?.(t);missingSince=0;save();}
+ function launch(){if(!s.started||s.teacher)return;
+   if(s.v28?.tutorial){s.v28.tutorial.active=false;s.v28.tutorial.done=true;}
+   s.v34={active:true,step:0,done:false,cottageBase:s.buildings.filter(b=>b.type==='cottage').length};enter(0);tick();}
+ function finish(){const t=T();t.active=false;t.done=true;hole.hidden=true;card.hidden=true;allowRect=null;allowEl=null;current=-1;save();}
+ $('v34Next').addEventListener('click',finish);
+ function place(rect){
+   const pad=6;
+   if(!rect){hole.classList.add('v34-full');hole.style.left='50%';hole.style.top='50%';}
+   else{hole.classList.remove('v34-full');hole.style.left=(rect.left-pad)+'px';hole.style.top=(rect.top-pad)+'px';hole.style.width=(rect.width+pad*2)+'px';hole.style.height=(rect.height+pad*2)+'px';}
+   hole.hidden=false;card.hidden=false;
+   const ch=card.offsetHeight,vh=innerHeight;card.classList.remove('v34-below','v34-above','v34-center');
+   if(!rect){card.classList.add('v34-center');card.style.top=Math.max(12,(vh-ch)/2)+'px';return;}
+   const cx=rect.left+rect.width/2,cardLeft=Math.max(12,Math.min(innerWidth-12-card.offsetWidth,cx-card.offsetWidth/2));
+   card.style.setProperty('--ax',Math.max(18,Math.min(card.offsetWidth-18,cx-cardLeft))+'px');
+   card.style.left=cardLeft+'px';card.style.transform='none';
+   if(rect.top+rect.height/2>vh*.5){card.classList.add('v34-above');card.style.top=Math.max(8,rect.top-pad-ch-16)+'px';}
+   else{card.classList.add('v34-below');card.style.top=Math.min(vh-ch-8,rect.bottom+pad+16)+'px';}
+ }
+ function tick(){
+   if(ticking)return;ticking=true;
+   try{
+     const t=T();
+     if(!t.active||s.teacher||s.finished||!s.started||shown($('introOverlay'))){if(!hole.hidden){hole.hidden=true;card.hidden=true;}allowRect=null;allowEl=null;return;}
+     if(current<0){const st0=Math.min(LAST,t.step||0);enter(RESUME[st0]??st0);}else if(current!==t.step)enter(Math.min(LAST,t.step||0));
+     let st=STEPS[current];
+     // 완료 조건을 만족하면 다음 단계로 (한 번에 여러 단계 넘어가지 않게 1단계씩)
+     if(!st.final&&st.done(t)){enter(current+1);st=STEPS[current];}
+     // 다른 안내창(뉴스·역사 사건)이 떠 있으면 그 창을 먼저 닫게 함
+     const modal=[$('v33News'),$('eventOverlay')].find(shown);
+     $('v34Step').textContent=st.final?'안내 완료':`따라 하기 ${current+1} / ${LAST}`;
+     $('v34Text').innerHTML=st.text;$('v34Hint').textContent=st.hint||'';$('v34Hint').hidden=!st.hint;$('v34Next').hidden=!st.final;
+     if(modal){allowEl=modal;allowRect=null;hole.hidden=true;card.hidden=true;return;}
+     let target=st.target(),rect=null;allowEl=null;allowRect=null;
+     if(target==='map'){rect=buildingRect();allowRect=rect;}
+     else if(target&&shown(target)){target.scrollIntoView?.({block:'nearest',inline:'nearest'});rect=target.getBoundingClientRect();allowEl=target;}
+     if(!st.final&&!rect){ // 대상이 잠시 안 보이면 기다리고, 오래 안 보이면 막지 않음 (진행 불가 방지)
+       missingSince||=performance.now();
+       if(performance.now()-missingSince>1500&&RESUME[current]!==undefined&&RESUME[current]!==current){enter(RESUME[current]);return;}
+       if(performance.now()-missingSince>1500){hole.hidden=true;card.hidden=false;place(null);hole.hidden=true;allowEl=document.body;return;}
+     }else missingSince=0;
+     place(rect);
+   }finally{ticking=false;}
+ }
+ // 지정한 곳 말고는 누를 수 없게 막음
+ function allowed(e){
+   const t=T();if(!t.active||current<0||hole.hidden&&card.hidden)return true;
+   if(e.target.closest?.('#v34Card'))return true;
+   if(allowEl===document.body)return true;
+   if(allowEl&&e.target.closest&&allowEl.contains(e.target))return true;
+   if(allowRect&&e.target.id==='mapCanvas'){const pts=e.touches?.length?[...e.touches]:e.changedTouches?.length?[...e.changedTouches]:[e];
+     return pts.every(p=>p.clientX>=allowRect.left&&p.clientX<=allowRect.right&&p.clientY>=allowRect.top&&p.clientY<=allowRect.bottom)&&(!e.touches||e.touches.length<=1);}
+   return false;
+ }
+ for(const type of ['pointerdown','pointerup','pointermove','mousedown','mouseup','click','dblclick','touchstart','touchmove','touchend','wheel','contextmenu','keydown']){
+   window.addEventListener(type,e=>{if(type==='pointermove'||type==='touchmove'){if(!allowed(e)&&!(allowRect&&e.target.id==='mapCanvas'))e.stopImmediatePropagation();return;}
+     if(type==='keydown'){if(!allowed(e)&&e.key!=='Tab'){e.preventDefault();e.stopImmediatePropagation();}return;}
+     if(!allowed(e)){e.preventDefault();e.stopImmediatePropagation();}},{capture:true,passive:false});
+ }
+ // 길게 눌러 이동하는 동작이 튜토리얼 중 시작되지 않도록 지도 탭은 짧게만 허용
+ $('startButton').addEventListener('click',()=>setTimeout(launch,0));
+ setInterval(tick,150);addEventListener('resize',tick);
+ const oldUI=updateUI;updateUI=function(...a){const r=oldUI(...a);requestAnimationFrame(tick);return r;};
+ window.industrialV34={version:'34.0',launch,finish,get step(){return current},STEPS};
+})();
+</script>
+
+<style id="v35Style">
+#v35Alert{position:absolute;z-index:60;left:8px;top:calc(228px + env(safe-area-inset-top,0px));max-width:min(78vw,300px);display:block;padding:8px 11px;border-radius:11px;border:1.5px solid #ff9b7c;background:#4a1d1ef0;color:#ffe6dc;font-size:12.5px;font-weight:800;line-height:1.35;box-shadow:0 6px 18px #1a050566;animation:v35Blink 1.6s ease-in-out infinite;text-align:left}
+#v35Alert.hidden{display:none!important}
+#v35Alert.v35-info{background:#173f4af0;border-color:#e7be72;color:#fff0cf;animation:none}#v35Alert.v35-info small{color:#cfe6dc}
+#v35Alert small{display:block;font-weight:600;color:#ffc9b8;font-size:11px}
+@keyframes v35Blink{0%,100%{border-color:#ff9b7c}50%{border-color:#ffd3c4}}
+@media(min-width:620px){#v35Alert{left:calc(50% - 280px)}}
+#v35Export{margin:0 0 12px;padding:13px 14px;border-radius:14px;border:1px solid #e4c27d88;background:linear-gradient(135deg,#2f4a33,#173a3f);color:#f2ecd7}
+#v35Export h3{margin:0 0 4px;font-size:15px;color:#ffe0a0}
+#v35Export p{margin:0 0 8px;font-size:12px;line-height:1.5;color:#d3e4dc}
+#v35Export .v35-row{display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:12px;color:#bfe6cf}
+#v35Export button{border:0;border-radius:10px;padding:9px 12px;background:#e7be72;color:#1f2f33;font-weight:900;font-size:13px;min-height:40px}
+#v35Export button:disabled{background:#4b5f62;color:#c2cfcd}
+</style>
+<script id="v35CityGrowth">
+/* v35 | 원료 관리 · 세계 수출 · 항구/철도역 규칙 · 빽빽한 산업 도시 */
+(()=>{
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const api={version:'35.0',autoGap:1};window.industrialV35=api;
+ // ── 운하: 강에서 동쪽으로 이어지는 수로 (수력공장·항구를 지을 물가가 늘어남)
+ const canalRow=c=>24+Math.round(Math.sin(c*.33)*1.6);
+ const isCanal=(r,c)=>c>=6&&c<N-1&&r===canalRow(c);
+ const baseRiver=isRiver;
+ isRiver=function(r,c){return baseRiver(r,c)||isCanal(r,c);};
+ api.isCanal=isCanal;
+ if(typeof v9GroundKey!=='undefined')v9GroundKey='';
+ // 운하 자리에 있던 기존 건물은 가까운 빈 땅으로 옮김 (예전 저장 호환)
+ function relocateFromCanal(){if(!s?.started)return;const moved=[];
+   for(const b of [...s.buildings]){const a=window.industrialV32?.bounds(b.type,b.r,b.c);if(!a)continue;let hit=false;
+     for(let r=a.r0;r<=a.r1&&!hit;r++)for(let c=a.c0;c<=a.c1;c++)if(isCanal(r,c)){hit=true;break;}
+     if(!hit)continue;const keep=s.buildings;s.buildings=keep.filter(x=>x.uid!==b.uid);const spot=findSpot(b.type);s.buildings=keep;
+     if(spot){b.r=spot.r;b.c=spot.c;moved.push(b);}}
+   if(moved.length){if(typeof v9GroundKey!=='undefined')v9GroundKey='';toast(`🚣 운하 공사로 건물 ${moved.length}곳을 가까운 빈 땅으로 옮겼습니다.`);save();}}
+ setTimeout(relocateFromCanal,600);document.getElementById('resumeButton')?.addEventListener('click',()=>setTimeout(relocateFromCanal,300));
+ const lv=()=>v5Level();
+ const st=()=>(s.v35||={exportLv:0});
+ // ── 자동 건설은 건물 사이를 2칸 띄움 (사이사이는 도시 건물이 채움). 자리가 없으면 1칸 간격으로
+ const oldFind=findSpot;
+ findSpot=function(id){api.autoGap=2;let spot=null;try{spot=oldFind(id);}finally{api.autoGap=1;}return spot||oldFind(id);};
+ // ── 대규모 고용비: 150명을 넘으면 1명당 비용이 천천히 오름
+ {const R=window.industrialV28Rules;window.industrialV28Rules=Object.freeze({...R,hireCost:n=>{n=Math.max(0,Number(n)||0);return 8+Math.floor(Math.min(n,150)*.2+Math.max(0,n-150)*.04);}});}
+ // ── 철도역·증기선 항구는 최대 3곳
+ const LIMIT={railway:3,harbor:3};
+ const oldBuild=build;
+ build=function(type,...args){if(LIMIT[type]&&count(s,type)>=LIMIT[type]){toast(`${B[type].name}은(는) 최대 ${LIMIT[type]}곳까지 지을 수 있습니다. 기존 시설을 증축하세요.`,true);return;}return oldBuild(type,...args);};
+ // ── 원료 부족 경고
+ const alert=document.createElement('button');alert.type='button';alert.id='v35Alert';alert.className='hidden';$('app').append(alert);
+ const starve={glut:0,cotton:0,yarn:0,coal:0,wool:0};let alertKind=null;
+ const working=types=>s.buildings.some(b=>types.includes(b.type)&&b.workers>0);
+ const RULES=[
+  {k:'glut',need:()=>lv()>=4&&(st().exportLv||0)<10,low:()=>s.cloth>150,msg:()=>`📦 면직물 ${Math.floor(s.cloth)}개가 팔리지 못하고 쌓였어요<small>무역 지도의 ‘세계 수출 계약’으로 판매량을 늘리세요 →</small>`,go:()=>{panelOpen('world');setTimeout(()=>document.getElementById('v35Export')?.scrollIntoView({block:'center'}),120);}},
+  {k:'cotton',need:()=>working(['spinner','watermill']),low:()=>s.cotton<1&&s.cloth<=150,msg:()=>`⚠ 면화 부족 · 방적 공장이 멈췄어요<small>수입 ${cottonImportRate().toFixed(1)}/초 · 눌러서 무역 확장 →</small>`,go:()=>{panelOpen('world');setTimeout(()=>document.querySelector('#routeCards [data-route-upgrade="northAmerica"],#routeCards [data-route-upgrade="india"]')?.closest('.route-card')?.scrollIntoView({block:'center'}),120);}},
+  {k:'yarn',need:()=>working(['weaving','steamFactory']),low:()=>s.yarn<1&&s.cloth<=150,msg:()=>'⚠ 실 부족 · 방직 공장이 멈췄어요<small>방적 작업장·수력 방적공장을 늘리거나 증축하세요 →</small>',go:()=>document.querySelector('#v11Dock [data-v11-tab="build"]')?.click()},
+  {k:'coal',need:()=>working(['steamFactory']),low:()=>s.coal<1,msg:()=>'⚠ 석탄 부족 · 증기공장이 멈췄어요<small>탄광에 노동자를 배치하거나 증축하세요 →</small>',go:()=>document.querySelector('#v11Dock [data-v11-tab="workers"]')?.click()},
+  {k:'wool',need:()=>working(['cottage']),low:()=>s.wool<1,msg:()=>'⚠ 양모 부족 · 모직물 작업장이 멈췄어요<small>양 목장에 노동자를 배치하거나 증축하세요 →</small>',go:()=>document.querySelector('#v11Dock [data-v11-tab="workers"]')?.click()}
+ ];
+ alert.addEventListener('click',()=>{RULES.find(r=>r.k===alertKind)?.go();});
+ setInterval(()=>{
+   if(!s.started||s.finished||s.teacher||s.v34?.active||!gameRunning){alert.classList.add('hidden');return;}
+   let show=null;for(const r of RULES){if(r.need()&&r.low())starve[r.k]++;else starve[r.k]=0;if(!show&&starve[r.k]>=3)show=r;}
+   if(show){alertKind=show.k;alert.innerHTML=show.msg();alert.classList.toggle('v35-info',show.k==='glut');alert.classList.remove('hidden');}else{alertKind=null;alert.classList.add('hidden');}
+ },1000);
+ // ── 세계 수출 계약 (무역 지도 안)
+ const EXPORT_MAX=10,exportPrice=l=>Math.ceil(350*Math.pow(1.55,l));
+ const oldWorld=updateWorld;
+ updateWorld=function(...a){const r=oldWorld(...a);
+   let box=$('v35Export');const cards=$('routeCards');
+   if(!box&&cards){box=document.createElement('section');box.id='v35Export';cards.parentElement.insertBefore(box,cards);
+     box.addEventListener('click',e=>{if(!e.target.closest('button'))return;const l=st().exportLv,price=exportPrice(l);if(l>=EXPORT_MAX||s.coins<price)return;
+       s.coins-=price;st().exportLv=l+1;toast(`🌍 세계 수출 계약 Lv.${l+1} · 면직물 판매량·가격 증가`);playSfx('build');updateWorld();updateUI(true);save();});}
+   if(box){const l=st().exportLv,open=lv()>=4,price=exportPrice(l);
+     const ship=(1.4+(count(s,'dock')*.6)+(count(s,'harbor')*1.5)+(count(s,'railway')*1.35)+(has(s,'steamboat')?1.15:0))*(window.industrialV31?.scale?.()||1)*(1+.45*l)*(s.routes.europe?1.22:1);
+     box.innerHTML=`<h3>🌍 세계 수출 계약 Lv.${l}</h3><p>영국 면직물을 유럽·아메리카·아시아 시장에 팝니다. 단계마다 <b>면직물 판매량 +45%</b>, <b>판매 가격 +10%</b>.</p>
+       <div class="v35-row"><span>현재 판매 한도 ${ship.toFixed(1)}개/초 · 가격 ×${(1+.1*l).toFixed(1)}</span>
+       <button type="button" ${!open||l>=EXPORT_MAX||s.coins<price?'disabled':''}>${!open?'🔒 제4장부터':l>=EXPORT_MAX?'최대 계약':'계약 확대 £'+price.toLocaleString('ko-KR')}</button></div>`;}
+   return r;};
+ // ── 산업도시 그리기
+ const INDUSTRY=new Set(['steamFactory','weaving','spinner','watermill','coalMine','ironMine','railway']);
+ const CHIMNEYS={steamFactory:[[15,-44,34],[-7,-38,28],[27,-30,22]],weaving:[[17,-34,26],[-12,-28,18]],spinner:[[15,-30,22]],watermill:[[17,-28,18]],coalMine:[[21,-26,20]],ironMine:[],railway:[[-15,-24,14]],dock:[],harbor:[[22,-20,14]]};
+ function chimney(x,y,h,t,k){ctx.fillStyle='#6b3d31';ctx.fillRect(x-2.6,y-h,5.2,h);ctx.fillStyle='#4a2a23';ctx.fillRect(x-3.4,y-h-2.2,6.8,2.6);
+   ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(x+.6,y-h,2,h);
+   if(k<=0)return;for(let j=0;j<4;j++){const ph=((t*.00028*(s.gameSpeed||1)+j*.25+x*.013)%1),rise=ph*34*k,size=(3+ph*9)*Math.min(1.4,.7+k*.4);
+     ctx.fillStyle=`rgba(${58-ph*10},${58-ph*10},${62-ph*8},${(.55-ph*.5)*Math.min(1,k)})`;ctx.beginPath();ctx.arc(x+ph*10+Math.sin(ph*6+j)*2,y-h-4-rise,size,0,Math.PI*2);ctx.fill();}}
+ const oldDraw=drawBuilding;
+ drawBuilding=function(b,x,y,z,t,...rest){const res=oldDraw(b,x,y,z,t,...rest);
+   try{const L=lv();if(L<4||!CHIMNEYS[b.type]||!s.started)return res;
+     const list=CHIMNEYS[b.type].slice(0,b.type==='steamFactory'?Math.min(3,(b.level||1)+(L>=6?1:0)):Math.min(CHIMNEYS[b.type].length,(b.level||1)));
+     const k=(b.workers>0?1:.25)*(.6+.15*(L-4));const time=performance.now();
+     ctx.save();ctx.translate(x,y);for(const [cx,cy,h] of list)chimney(cx,cy,h*(1+.08*(L-4)),time,k);ctx.restore();
+   }catch(e){}
+   return res;};
+ // 빈 땅을 채우는 노동자 연립주택 · 탁해지는 강
+ const DENSITY=[0,0,.16,.3,.46,.62,.78];
+ let fillerKey='',fillers=[];
+ function buildFillers(){
+   const L=lv(),key=L+'|'+s.phase+'|'+s.buildings.map(b=>b.uid+':'+b.r+','+b.c+':'+b.type).join(';');
+   if(key===fillerKey)return fillers;fillerKey=key;fillers=[];if(DENSITY[L-1]<=0)return fillers;
+   const bound=b=>window.industrialV32?.bounds(b.type,b.r,b.c)||{r0:b.r,r1:b.r,c0:b.c,c1:b.c};
+   const occ=new Set();for(const b of s.buildings){const a=bound(b);for(let r=a.r0;r<=a.r1;r++)for(let c=a.c0;c<=a.c1;c++)occ.add(r+','+c);}
+   const roads=new Set();try{for(const route of window.industrialV13?.getRoutes?.()||[])for(const p of route.path)roads.add(p.r+','+p.c);}catch(e){}
+   const land=[[9,10],[10,9],[3,10],[3,11],[3,12],[4,10],[4,11],[4,12],[5,10],[5,11],[5,12],[7,7],[7,8],[8,7],[8,8]];for(const [r,c] of land)occ.add(r+','+c);
+   const centers=s.buildings.filter(b=>b.type!=='pasture').map(b=>[b.r,b.c]);
+   for(let r=1;r<N-1;r++)for(let c=1;c<N-1;c++){const k=r+','+c;if(occ.has(k)||roads.has(k)||isRiver(r,c))continue;
+     let near=99;for(const [br,bc] of centers){const d=Math.hypot(br-r,bc-c);if(d<near)near=d;}
+     const reach=1.6+L*.42;if(near>reach)continue;
+     const n=noise(r*1.7+3,c*1.3+9);if(n>DENSITY[L-1]*(1.15-near/reach*.45))continue;
+     fillers.push({r,c,n,kind:near<2.4&&L>=5?'tenement':'terrace'});}
+   fillers.sort((a,b)=>a.r+a.c-b.r-b.c);return fillers;}
+ function isoBox(x,y,w,d,h,wall1,wall2,roof){ // x,y: 바닥 중심
+   ctx.beginPath();ctx.moveTo(x-w,y);ctx.lineTo(x,y+d);ctx.lineTo(x,y+d-h);ctx.lineTo(x-w,y-h);ctx.closePath();ctx.fillStyle=wall1;ctx.fill();
+   ctx.beginPath();ctx.moveTo(x,y+d);ctx.lineTo(x+w,y);ctx.lineTo(x+w,y-h);ctx.lineTo(x,y+d-h);ctx.closePath();ctx.fillStyle=wall2;ctx.fill();
+   ctx.beginPath();ctx.moveTo(x-w,y-h);ctx.lineTo(x,y+d-h);ctx.lineTo(x+w,y-h);ctx.lineTo(x,y-d-h-d*.9);ctx.closePath();ctx.fillStyle=roof;ctx.fill();}
+ // 같은 모양 주택은 한 번 그린 이미지를 재사용 (성능)
+ const spriteCache=new Map();
+ function sprite(f,L,z){const dpr=viewport.dpr||1,key=f.kind+'|'+(f.n<.3)+'|'+(f.n<.5)+'|'+L+'|'+Math.round(z*50)+'|'+dpr;let sp=spriteCache.get(key);if(sp)return sp;
+   if(spriteCache.size>80)spriteCache.clear();
+   const W=56,H=50,ox=28,oy=36,cv=document.createElement('canvas');cv.width=Math.ceil(W*z*dpr);cv.height=Math.ceil(H*z*dpr);
+   const g=cv.getContext('2d'),saved=ctx;ctx=g;try{g.scale(z*dpr,z*dpr);g.translate(ox,oy);paintFiller(f,L,0,false);}finally{ctx=saved;}
+   sp={cv,ox:ox*z,oy:oy*z,w:W*z,h:H*z};spriteCache.set(key,sp);return sp;}
+ function drawFiller(f,now){const p=project(f.r,f.c),z=s.camera.zoom,L=lv();
+   if(p.x<-60||p.y<-60||p.x>viewport.w+60||p.y>viewport.h+60)return;
+   const sp=sprite(f,L,z);ctx.drawImage(sp.cv,p.x-sp.ox,p.y-sp.oy,sp.w,sp.h);
+   if(L>=4&&f.n<.18){ctx.save();ctx.translate(p.x,p.y);ctx.scale(z,z);smokeOnly(f.kind==='tenement'?2:6,(f.kind==='tenement'?-20:-12)-7,now,.35+.1*(L-4));ctx.restore();}}
+ function smokeOnly(x,top,t,k){for(let j=0;j<3;j++){const ph=((t*.00028*(s.gameSpeed||1)+j*.33+x*.013)%1),rise=ph*26*k,size=(2.5+ph*7);
+     ctx.fillStyle=`rgba(60,60,64,${(.5-ph*.45)*Math.min(1,k)})`;ctx.beginPath();ctx.arc(x+ph*8,top-4-rise,size,0,Math.PI*2);ctx.fill();}}
+ function paintFiller(f,L,now,animated){
+   const soot=Math.min(1,(L-3)*.22);
+   const wallA=f.n<.3?'#9a5f4c':'#a8705a',wallB=f.n<.3?'#7c4a3c':'#8a5a48',roof=soot>.4?'#3f4247':'#5b5052';
+   ctx.fillStyle='rgba(40,38,34,.18)';ctx.beginPath();ctx.ellipse(0,2,20,8,0,0,Math.PI*2);ctx.fill();
+   if(f.kind==='tenement'){isoBox(-4,-1,10,5,22,wallA,wallB,roof);isoBox(8,4,9,4.5,17,wallA,wallB,roof);
+     ctx.fillStyle='#e8c98a';for(let i=0;i<3;i++){ctx.fillRect(-11+i*3.2,-12+i*1.6,1.6,2.4);ctx.fillRect(-11+i*3.2,-18+i*1.6,1.6,2.4);}}
+   else{for(let i=0;i<3;i++)isoBox(-9+i*7,-3+i*3.5,6.5,3.3,11+(i%2)*2,wallA,wallB,roof);
+     ctx.fillStyle='#e8c98a';for(let i=0;i<3;i++)ctx.fillRect(-12+i*7,-6+i*3.5,1.5,2.2);}
+   if(L>=4&&f.n<.5)chimney(f.kind==='tenement'?2:6,f.kind==='tenement'?-20:-12,7,now,animated?.35+.1*(L-4):0);}
+ let riverTiles=null;
+ function pollutedRiver(){const L=lv();const a=[0,0,.06,.14,.24,.33,.42][L-1];if(!a)return;const z=s.camera.zoom;
+   if(!riverTiles){riverTiles=[];for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(isRiver(r,c))riverTiles.push([r,c]);}
+   ctx.save();ctx.fillStyle=`rgba(86,76,52,${a})`;for(const [r,c] of riverTiles){const p=project(r,c);if(p.x<-60||p.y<-40||p.x>viewport.w+60||p.y>viewport.h+40)continue;
+     ctx.beginPath();ctx.moveTo(p.x,p.y-TH/2*z);ctx.lineTo(p.x+TW/2*z,p.y);ctx.lineTo(p.x,p.y+TH/2*z);ctx.lineTo(p.x-TW/2*z,p.y);ctx.closePath();ctx.fill();}
+   ctx.restore();}
+ const oldRoads=window.v13DrawRoadNetwork;
+ if(oldRoads)window.v13DrawRoadNetwork=function(now,...a){pollutedRiver();const r=oldRoads(now,...a);try{if(s.started)for(const f of buildFillers())drawFiller(f,now);}catch(e){}return r;};
+ // 스모그: 장이 오를수록 어둡고 탁한 하늘
+ const oldMap=drawMap;
+ drawMap=function(now,...a){const r=oldMap(now,...a);try{const L=lv();if(L>=4&&s.started){const {w,h,dpr}=viewport;ctx.save();ctx.setTransform(dpr,0,0,dpr,0,0);
+   const ind=s.buildings.filter(b=>INDUSTRY.has(b.type)&&b.workers>0).length,alpha=Math.min(.3,[0,0,0,.06,.11,.16,.21][L-1]+ind*.003);
+   const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,`rgba(52,48,44,${alpha*1.5})`);g.addColorStop(.55,`rgba(40,40,44,${alpha})`);g.addColorStop(1,`rgba(28,30,34,${alpha*.8})`);
+   ctx.fillStyle=g;ctx.fillRect(0,0,w,h);ctx.restore();}}catch(e){}return r;};
+ api.fillers=()=>buildFillers();api.exportPrice=exportPrice;
+})();
+</script>
+
+<script id="v36BigIndustry">
+/* v36 | 큰 공장·항구·철도역 + 도시로 몰려드는 노동자 이벤트 */
+(()=>{
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ // ── 큰 건물: 바닥이 넓어진 만큼 그림도 키우고 중심을 맞춤
+ const SCALE={watermill:1.45,weaving:1.45,steamFactory:1.38,railway:1.4,harbor:1.4};
+ function big(b){const k=SCALE[b.type];if(!k)return null;const a=window.industrialV32?.bounds(b.type,b.r,b.c);if(!a)return {k,dx:0,dy:0};
+   const dr=(a.r0+a.r1)/2-b.r,dc=(a.c0+a.c1)/2-b.c;return {k,dx:(dc-dr)*TW/2,dy:(dr+dc)*TH/2};}
+ const oldDraw=drawBuilding;
+ drawBuilding=function(b,x,y,z,t,...rest){const g=big(b);if(!g)return oldDraw(b,x,y,z,t,...rest);
+   ctx.save();ctx.translate(x+g.dx,y+g.dy);ctx.scale(g.k,g.k);try{return oldDraw(b,0,0,z,t,...rest);}finally{ctx.restore();}};
+ // 예전 저장: 커진 바닥이 다른 건물과 겹치면 가까운 빈 땅으로 옮김
+ function relocateOverlaps(){if(!s?.started)return;const B32=window.industrialV32;if(!B32)return;let moved=0;
+   const ov=(a,b)=>a.r0<=b.r1&&a.r1>=b.r0&&a.c0<=b.c1&&a.c1>=b.c0;
+   for(const b of s.buildings.filter(x=>SCALE[x.type])){const a=B32.bounds(b.type,b.r,b.c);
+     let bad=a.r0<1||a.c0<1||a.r1>=N-1||a.c1>=N-1;for(const o of s.buildings){if(o===b)continue;if(ov(a,B32.bounds(o.type,o.r,o.c))){bad=true;break;}}
+     if(!bad)continue;const keep=s.buildings;s.buildings=keep.filter(x=>x!==b);const spot=findSpot(b.type);s.buildings=keep;if(spot){b.r=spot.r;b.c=spot.c;moved++;}}
+   if(moved){if(typeof v9GroundKey!=='undefined')v9GroundKey='';toast(`🏭 대형 공장 부지 정리로 건물 ${moved}곳을 옮겼습니다.`);save();}}
+ setTimeout(relocateOverlaps,800);$('resumeButton')?.addEventListener('click',()=>setTimeout(relocateOverlaps,500));
+ // ── 도시로 몰려드는 노동자: 고용비·임금이 점점 낮아짐
+ const st=()=>(s.v36||={hireMult:1,wageMult:1,waves:0,nextAt:null});
+ const R=window.industrialV28Rules;
+ window.industrialV28Rules=Object.freeze({...R,
+   hireCost:n=>Math.max(2,Math.round(R.hireCost(Math.max(0,n-(s?.v36?.migrants||0)))*(s?.v36?.hireMult??1))),
+   wageRate:w=>R.wageRate(w)*(s?.v36?.wageMult??1)});
+ const CITIES=['런던','맨체스터','리버풀','버밍엄','리즈','글래스고'];
+ const STORIES=[
+  ['🌾','울타리 밖으로 밀려난 농민들','인클로저로 땅을 잃은 농민 가족들이 일자리를 찾아 공업 도시로 떠납니다.'],
+  ['🚶','일자리를 찾아 도시로','농촌보다 공장 임금이 조금이라도 높다는 소문에 젊은이들이 도시로 몰려듭니다.'],
+  ['🚂','기차를 타고 온 사람들','철도가 이어지자 먼 지방 사람들도 쉽게 공업 도시로 올 수 있게 되었습니다.'],
+  ['🏚','빽빽해지는 노동자 거리','몰려든 사람들로 좁은 연립주택과 골목이 빠르게 늘어납니다.'],
+  ['⛴','바다를 건너온 노동자','아일랜드 등 다른 지역에서도 일자리를 찾아 사람들이 건너옵니다.'],
+  ['🧒','온 가족이 공장으로','어른뿐 아니라 여성과 어린이까지 낮은 임금을 받고 공장에서 일하게 됩니다.']];
+ const fmtMoney=v=>'£'+(Math.round(v*10)/10).toLocaleString('ko-KR');
+ function wave(){const v=st(),L=v5Level();
+   const perMin=()=>window.industrialV28Rules.wageRate(s.wage)*60;
+   const hireBefore=window.industrialV28Rules.hireCost(s.hired),wageBefore=perMin();
+   v.waves++;v.hireMult=Math.max(.35,v.hireMult*.86);v.wageMult=Math.max(.55,v.wageMult*.93);
+   const arrivals=6*L+Math.floor(Math.random()*5);s.hired+=arrivals;v.migrants=(v.migrants||0)+arrivals;s.stats.totalHired=(s.stats.totalHired||0)+arrivals;s.stats.peakWorkers=Math.max(s.stats.peakWorkers||0,s.hired);
+   const hireAfter=window.industrialV28Rules.hireCost(s.hired),wageAfter=perMin();
+   const [icon,title,text]=STORIES[(v.waves-1)%STORIES.length],city=CITIES[(v.waves-1)%CITIES.length];
+   history(icon,`${city}로 몰려든 노동자`,`${arrivals}명 도착 · 고용비와 임금 하락`);
+   window.industrialV33?.push({kicker:`👥 도시로 몰려드는 사람들 · 제${v.waves}차 이주`,icon,title:`${city}에 노동자 ${arrivals}명이 몰려왔습니다`,
+     body:`<p>${text}</p><ul><li>새 노동자 <b>${arrivals}명</b>이 고용되었습니다 (노동 메뉴에서 배치하세요)</li><li>1명 고용비 <b>${fmtMoney(hireBefore)} → ${fmtMoney(hireAfter)}</b></li><li>노동자 1명 임금 <b>£${wageBefore.toFixed(3)} → £${wageAfter.toFixed(3)}/분</b> (처음 임금의 ${Math.round(v.wageMult*100)}%)</li></ul><p style="margin-top:8px;font-size:12px;color:#f3c9a8">일할 사람이 넘쳐나자 자본가는 임금을 낮게 유지할 수 있었습니다. 이는 긴 노동 시간과 열악한 생활 등 노동 문제로 이어졌습니다.</p>`});
+   v.nextAt=s.elapsed+70+v.waves*12;updateUI(true);save();}
+ setInterval(()=>{
+   if(!s?.started||s.finished||s.teacher||s.v34?.active||!gameRunning)return;
+   const v=st(),L=v5Level();if(L<3||v.waves>=12)return;
+   if(v.nextAt==null){v.nextAt=s.elapsed+25;return;}
+   if(s.elapsed>=v.nextAt)wave();
+ },1000);
+ // 노동 창에 현재 고용비·임금 수준 표시
+ const panel=$('v12Workers');
+ function note(){if(!panel||panel.classList.contains('hidden'))return;const v=st();let el=panel.querySelector('.v36-note');
+   const text=`👷 1명 고용비 ${fmtMoney(window.industrialV28Rules.hireCost(s.hired))} · 임금 기준의 ${Math.round((v.wageMult||1)*100)}%`+(v.waves?` · 이주 ${v.waves}차`:'');
+   if(!el){el=document.createElement('div');el.className='v36-note';el.style.cssText='margin:6px 2px 2px;font-size:12px;color:#ffd99a;font-weight:700';const acts=panel.querySelector('.v12-actions');if(!acts)return;acts.after(el);}
+   if(el.textContent!==text)el.textContent=text;}
+ if(panel)new MutationObserver(note).observe(panel,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+ window.industrialV36={version:'36.0',big,wave,relocateOverlaps};
+})();
+</script>
+
+<style id="v38Style">
+#endingStep3 .v38-lines{display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px;text-align:center;max-width:560px}
+#endingStep3 .v38-line{margin:0;color:#d0202c;font-size:clamp(17px,4.6vw,24px);font-weight:800;line-height:1.5;letter-spacing:-.3px;text-shadow:0 0 14px #6a070e66;opacity:0;animation:v38LineIn 1.8s ease forwards;animation-delay:var(--d)}
+#endingStep3 .v38-line.v38-last{font-size:clamp(28px,8vw,46px);font-weight:900;color:#e0141f;margin-top:14px}
+@keyframes v38LineIn{from{opacity:0;transform:translateY(8px);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
+#endingStep3 .ending-restart{animation-delay:15.5s!important}
+@media(prefers-reduced-motion:reduce){#endingStep3 .v38-line{animation-duration:.01s}}
+</style>
+<script id="v38ExpoFinale">
+/* v38 | 만국박람회장(수정궁) 건설 · 노동자 가득 채우기 · 엔딩 문구 · 클릭 진동 */
+(()=>{
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ // ── 만국박람회장 (수정궁)
+ const PALACE={id:'crystalPalace',name:'만국박람회장 (수정궁)',icon:'🏛️',cost:3000,cap:360,unlock:null,
+   about:'1851년 런던 하이드 파크에 세워진 유리와 철의 거대한 전시관입니다. 노동자로 가득 채우면 만국박람회를 열 수 있습니다.',
+   effect:'노동자 360명 · 만국박람회 개최 조건',label:'박람회'};
+ if(!B.crystalPalace){BUILDINGS.push(PALACE);B.crystalPalace=PALACE;}
+ V5_BUILD_GATES.crystalPalace=7;
+ // 7장 목표: 수정궁 건설 + 노동자 가득
+ const prevReq=v5Requirements;
+ v5Requirements=function(level=v5Level(),...rest){const rows=prevReq(level,...rest);
+   if(Math.max(1,Math.min(7,level))!==7)return rows;
+   const p=s.buildings.find(b=>b.type==='crystalPalace');
+   return [...rows,['🏛️ 만국박람회장(수정궁) 건설',!!p],[`👷 수정궁에 노동자 가득 채우기 ${p?p.workers:0}/${PALACE.cap}명`,!!p&&p.workers>=PALACE.cap]];};
+ T.expo.req=[...(T.expo.req||[]).filter(x=>!/수정궁/.test(x)),'만국박람회장(수정궁) 건설','수정궁 노동자 360명 가득'];
+ const oldExpoTest=T.expo.test;
+ T.expo.test=st=>{const p=st.buildings.find(b=>b.type==='crystalPalace');return !!p&&p.workers>=PALACE.cap&&oldExpoTest(st);};
+ // 한 곳만 건설
+ const oldBuild=build;
+ build=function(type,...a){if(type==='crystalPalace'&&count(s,'crystalPalace')>=1){toast('만국박람회장은 한 곳만 지을 수 있습니다.',true);return;}
+   const n=s.buildings.length,r=oldBuild(type,...a);
+   if(type==='crystalPalace'&&s.buildings.length>n&&!s.teacher)window.industrialV33?.push({kicker:'🏛️ 1851 · 런던 하이드 파크',icon:'🏛️',title:'수정궁이 세워졌습니다',
+     body:'<p>유리 약 30만 장과 철골로 지은 거대한 전시관입니다. 이제 노동자를 가득 채워 세계 각국의 손님을 맞을 준비를 하세요.</p><ul><li>건물을 누르고 <b>👷 노동자 가득 채우기</b>를 누르세요</li><li>360명이 모두 배치되면 연구 메뉴에서 만국박람회를 열 수 있습니다</li></ul>'});
+   return r;};
+ // 노동자 가득 채우기: 미배치 인원 먼저, 모자라면 고용해서 배치
+ function fill(uid){const b=s.buildings.find(x=>x.uid===uid);if(!b)return;const cap=B[b.type].cap;let need=cap-b.workers;if(need<=0)return;
+   let free=s.hired-activeWorkers(s);let take=Math.min(need,Math.max(0,free));b.workers+=take;need-=take;
+   if(need>0){const before=s.hired;hire(need);const got=s.hired-before;const add=Math.min(need,got);b.workers+=add;need-=add;}
+   if(need>0)toast(`수정궁에 ${cap-need}/${cap}명 배치 · 자본이 부족해 ${need}명을 더 고용하지 못했습니다.`,true);
+   else toast(`🏛️ 수정궁에 노동자 ${cap}명이 가득 찼습니다!`);
+   updateUI(true);save();}
+ // 수정궁 그리기: 유리와 철의 대형 전시관
+ const P=(dr,dc,h=0)=>[(dc-dr)*TW/2,(dr+dc)*TH/2-h];
+ function poly(pts,fill,stroke,w=.8){ctx.beginPath();ctx.moveTo(...pts[0]);for(let i=1;i<pts.length;i++)ctx.lineTo(...pts[i]);ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=w;ctx.stroke();}}
+ function glassBox(r0,r1,c0,c1,h,vault){
+   // 앞쪽 두 면(+r, +c)과 지붕
+   const left=[P(r1,c0),P(r1,c1),P(r1,c1,h),P(r1,c0,h)],right=[P(r0,c1),P(r1,c1),P(r1,c1,h),P(r0,c1,h)];
+   poly(left,'rgba(150,200,214,.92)','#e9f6fa',1);poly(right,'rgba(118,170,188,.95)','#e9f6fa',1);
+   ctx.strokeStyle='rgba(235,248,252,.55)';ctx.lineWidth=.7;
+   for(let i=1;i<Math.round((c1-c0)*3);i++){const c=c0+i/3;ctx.beginPath();ctx.moveTo(...P(r1,c));ctx.lineTo(...P(r1,c,h));ctx.stroke();}
+   for(let i=1;i<Math.round((r1-r0)*3);i++){const r=r0+i/3;ctx.beginPath();ctx.moveTo(...P(r,c1));ctx.lineTo(...P(r,c1,h));ctx.stroke();}
+   for(const f of [.5]){ctx.beginPath();ctx.moveTo(...P(r1,c0,h*f));ctx.lineTo(...P(r1,c1,h*f));ctx.lineTo(...P(r0,c1,h*f));ctx.stroke();}
+   const rm=(r0+r1)/2,cm=(c0+c1)/2;
+   if(vault==='c'){ // 지붕 능선이 c 방향
+     poly([P(r1,c0,h),P(r1,c1,h),P(rm,c1,h+vault_h(r1-r0)),P(rm,c0,h+vault_h(r1-r0))],'rgba(196,230,238,.95)','#f4fbfd',1);
+     poly([P(r0,c1,h),P(r1,c1,h),P(rm,c1,h+vault_h(r1-r0))],'rgba(160,205,220,.95)','#f4fbfd',1);
+   }else{
+     poly([P(r0,c1,h),P(r1,c1,h),P(r1,cm,h+vault_h(c1-c0)),P(r0,cm,h+vault_h(c1-c0))],'rgba(180,220,232,.95)','#f4fbfd',1);
+     poly([P(r1,c0,h),P(r1,c1,h),P(r1,cm,h+vault_h(c1-c0))],'rgba(205,236,243,.96)','#f4fbfd',1);
+   }}
+ const vault_h=w=>w*9;
+ function drawPalace(b,t){const filled=b.workers/Math.max(1,B[b.type].cap);
+   poly([P(-2.5,-2.5),P(-2.5,2.5),P(2.5,2.5),P(2.5,-2.5)],'#cfc8b0','#a39b80',1.2);
+   poly([P(-2.2,-2.2),P(-2.2,2.2),P(2.2,2.2),P(2.2,-2.2)],'#bfd3a6');
+   // 분수와 정원
+   ctx.fillStyle='#8fc6d6';ctx.beginPath();ctx.ellipse(...P(1.9,1.9),9,4.5,0,0,Math.PI*2);ctx.fill();
+   glassBox(-.9,.9,-2.2,2.2,30,'c');           // 본관(길게)
+   glassBox(-2.1,2.1,-.75,.75,40,'r');          // 가로 날개(트랜셉트)
+   // 깃발
+   for(const [dr,dc,col] of [[-.9,-2.1,'#c8102e'],[-.9,2.1,'#1d4fa3'],[-2.1,0,'#e7be72']]){const [x,y]=P(dr,dc,dr===-2.1?40+18:30+12);
+     ctx.strokeStyle='#5a5a5a';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y-16);ctx.stroke();poly([[x,y-16],[x+10,y-13+Math.sin(t*.004)*1.5],[x,y-10]],col);}
+   // 방문객 (노동자가 찰수록 북적)
+   const n=Math.round(4+filled*22);ctx.fillStyle='#3b3f4a';
+   for(let i=0;i<n;i++){const a=i*2.39996,rr=1.4+((i*37)%10)/10,dr=Math.sin(a)*rr*.6+1.6,dc=Math.cos(a)*rr*1.4;const [x,y]=P(Math.min(2.3,dr),Math.max(-2.3,Math.min(2.3,dc)));ctx.fillRect(x-1,y-5,2,5);ctx.beginPath();ctx.arc(x,y-6,1.4,0,Math.PI*2);ctx.fill();}
+ }
+ const oldDraw=drawBuilding;
+ drawBuilding=function(b,x,y,z,t,...rest){if(b.type!=='crystalPalace')return oldDraw(b,x,y,z,t,...rest);
+   ctx.save();ctx.translate(x,y);try{drawPalace(b,performance.now());}finally{ctx.restore();}};
+ // 누르기 판정 크기
+ if(window.industrialV36){const ob=window.industrialV36.big;window.industrialV36.big=b=>b.type==='crystalPalace'?{k:3.2,dx:0,dy:0}:ob(b);}
+ // ── 엔딩 마지막 장면: 붉은 글씨가 한 줄씩
+ const LINES=['당신은 자본가로서 목표를 달성했다.','그러나 당신은 주변을 돌아보았는가?','당신의 도시가 커지는 걸 보았는가?','몰려오는 노동자가 귀찮지 않았는가?','노동자들을 단순히 숫자로만 보지 않았는가?','당신은 행복한가?'];
+ const step3=$('endingStep3');
+ if(step3){const h1=step3.querySelector('h1');const box=document.createElement('div');box.className='v38-lines';
+   box.innerHTML=LINES.map((l,i)=>`<p class="v38-line${i===LINES.length-1?' v38-last':''}" style="--d:${(0.6+i*2.3).toFixed(1)}s">${l}</p>`).join('');
+   if(h1)h1.replaceWith(box);else step3.prepend(box);}
+ // ── 클릭할 때 짧은 진동 (지원하는 기기에서)
+ const canVibrate=typeof navigator.vibrate==='function';
+ let lastBuzz=0;
+ document.addEventListener('pointerdown',e=>{if(!canVibrate)return;const now=performance.now();if(now-lastBuzz<60)return;
+   const el=e.target.closest?.('button,[role="button"],.v11-dock-item,.v11-build-card,a');
+   if(el&&!el.disabled){lastBuzz=now;try{navigator.vibrate(12);}catch{}}
+   else if(e.target.id==='mapCanvas'){lastBuzz=now;try{navigator.vibrate(6);}catch{}}},true);
+ // 수정궁은 증축 대상이 아님
+ const oldUp=upgradeBuilding;upgradeBuilding=function(uid,...a){const b=s.buildings.find(x=>x.uid===uid);if(b?.type==='crystalPalace'){toast('만국박람회장은 증축하지 않습니다. 노동자를 가득 채우세요.',true);return;}return oldUp(uid,...a);};
+ const card=$('v18BuildingCard');
+ if(card)new MutationObserver(()=>{if(/수정궁/.test(card.querySelector('header b')?.textContent||''))card.querySelectorAll('[data-v18-upgrade],[data-v33-massup]').forEach(x=>{if(x.style.display!=='none')x.style.display='none';});}).observe(card,{childList:true,subtree:true});
+ window.industrialV38={version:'38.0',fill,LINES};
+})();
+</script>
+
+<style id="v39Style">
+/* 만국박람회 구경 모드: 메뉴·창을 모두 숨기고 도시만 */
+body.v39-view :is(.hud,.mission-bar,#v11Dock,#v11BuildTray,#v11BuildDetails,#v12Workers,#v18BuildingCard,#sheet,.bottom-sheet,#v35Alert,#toastHost,#v23Feedback,.sheep-action,#v4Help,#v20MorePanel,#v20More,#v19Fit,#v3SynergyBadge,#v3Quick,#v12Select,#v19GoalCard,#v21TeacherDock,#v5EstateOverlay,#worldOverlay,#v33News,#v4Rail,.map-tag,.map-tip,#v3Chapter,#v12EraFlash,#v19UpgradeScene,.v222-chapter-chip,#v3AchievementFlash){display:none!important}
+#v39Bar{position:fixed;z-index:400;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));width:min(94vw,460px);display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:16px;background:linear-gradient(120deg,#1b3f4cf2,#0f2a35f2);border:1.5px solid #e7c27c;color:#fff1d2;box-shadow:0 10px 30px #00000066}
+#v39Bar[hidden]{display:none!important}
+#v39Bar p{margin:0;flex:1;font-size:13px;line-height:1.45;font-weight:700}#v39Bar small{display:block;color:#bfe0d4;font-weight:600;font-size:11.5px}
+#v39Bar button{flex:none;border:0;border-radius:11px;background:#e7be72;color:#1d2f33;font-weight:900;font-size:14px;padding:11px 13px;min-height:44px}
+/* 엔딩 마지막 장면: 한 줄씩 (3초 간격, 앞 줄은 사라짐) */
+#endingStep3 .v38-lines{position:relative;width:min(92vw,560px);height:clamp(150px,30vh,240px);display:block;padding:0}
+#endingStep3 .v38-line{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);opacity:0!important;animation:none!important;transition:opacity .9s ease,filter .9s ease;filter:blur(3px)}
+#endingStep3 .v38-line.v39-on{opacity:1!important;filter:none}
+#endingStep3 .ending-restart{animation:none!important;opacity:0;transition:opacity 1.2s ease;pointer-events:none}
+#endingStep3 .ending-restart.v39-on{opacity:1;pointer-events:auto}
+/* 원료 경고는 아래쪽(메뉴 위)으로 옮겨 상단 알림과 겹치지 않게 */
+#v35Alert{top:auto!important;bottom:calc(80px + env(safe-area-inset-bottom,0px))!important}
+</style>
+<script id="v39Polish">
+/* v39 | 박람회 구경 모드 · 건설창 순서 · 한 줄씩 엔딩 · 알림 정리 */
+(()=>{
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const shown=el=>!!el&&!el.classList.contains('hidden')&&el.getClientRects().length>0;
+ // ── 1. 건설창: 해금되는 장 순서로 (4장 건물이 5장 건물 뒤에 숨지 않게)
+ const ORDER=['pasture','cottage','dock','houses','spinner','watermill','weaving','coalMine','ironMine','steamFactory','railway','harbor','crystalPalace'];
+ for(const id of ORDER)if(id in B){const v=B[id];delete B[id];B[id]=v;}
+ BUILDINGS.sort((a,b)=>(ORDER.indexOf(a.id)+1||99)-(ORDER.indexOf(b.id)+1||99));
+ // 지금 지을 수 있는 건물이 앞에 오도록 카드 정렬
+ const rail=$('v11BuildRail');
+ function sortRail(){if(!rail)return;const cards=[...rail.querySelectorAll('[data-v11-build]')];if(cards.length<2)return;
+   const locked=c=>c.disabled||c.classList.contains('locked')||/필요|🔒/.test(c.textContent)?1:0;
+   const want=cards.slice().sort((a,b)=>locked(a)-locked(b)||ORDER.indexOf(a.dataset.v11Build)-ORDER.indexOf(b.dataset.v11Build));
+   if(want.every((c,i)=>c===cards[i]))return;for(const c of want)rail.append(c);}
+ if(rail)new MutationObserver(sortRail).observe(rail,{childList:true,subtree:true,characterData:true});
+ // ── 2. 만국박람회 개최 → 창을 모두 닫고 도시 구경 → [엔딩 보기]
+ const bar=document.createElement('section');bar.id='v39Bar';bar.hidden=true;
+ bar.innerHTML='<p>🎉 1851년 런던 만국박람회 개막!<small>손가락으로 움직이고 확대·축소하며 당신이 만든 도시를 둘러보세요.</small></p><button type="button" id="v39End">엔딩 보기 →</button>';
+ document.body.append(bar);
+ let mode='play';
+ const realStart=startEnding;
+ function closeAll(){try{if(sheetOpen)closeSheet();}catch{}
+   for(const id of ['v11BuildTray','v11BuildDetails','v12Workers','v18BuildingCard','v5EstateOverlay','worldOverlay','v20MorePanel','v19GoalCard','v3Quick','v12Select','eventOverlay','v33News','v4Help'])$(id)?.classList.add('hidden');
+   nextPlacement=null;$('placeBanner')?.classList.add('hidden');}
+ function enterView(){mode='view';closeAll();s.finished=false;s.gameSpeed=s.gameSpeed||1;gameRunning=true;
+   if(s.v36)s.v36.nextAt=Infinity;document.body.classList.add('v39-view');bar.hidden=false;
+   const focus=()=>{const p=s.buildings.find(b=>b.type==='crystalPalace');if(!p)return;try{cameraTween=null;}catch{}
+     const cr=$('mapCanvas').getBoundingClientRect();s.camera.zoom=1.05;const q=project(p.r,p.c);s.camera.panX+=cr.width/2-q.x;s.camera.panY+=cr.height*.42-q.y;};
+   focus();setTimeout(focus,60);setTimeout(focus,700);
+   save();}
+ function leaveView(){mode='done';bar.hidden=true;document.body.classList.remove('v39-view');s.finished=true;save();realStart();}
+ $('v39End').addEventListener('click',leaveView);
+ startEnding=function(...a){if(mode==='done'||s.teacher||!has(s,'expo'))return realStart(...a);if(mode!=='view')enterView();};
+ // 구경 중 새로고침 후 이어하기
+ $('resumeButton')?.addEventListener('click',()=>setTimeout(()=>{if(has(s,'expo')&&!s.finished&&!s.teacher)enterView();},200));
+ // ── 3. 엔딩 마지막: 붉은 글씨가 3초마다 한 줄씩 (앞 줄은 사라지고 마지막 줄은 남음)
+ const step3=$('endingStep3');let timers=[];
+ function playLines(){timers.forEach(clearTimeout);timers=[];const lines=[...step3.querySelectorAll('.v38-line')],restart=step3.querySelector('.ending-restart');
+   lines.forEach(l=>l.classList.remove('v39-on'));restart?.classList.remove('v39-on');
+   lines.forEach((l,i)=>{timers.push(setTimeout(()=>{lines.forEach(x=>x.classList.remove('v39-on'));l.classList.add('v39-on');},600+i*3000));});
+   timers.push(setTimeout(()=>restart?.classList.add('v39-on'),600+(lines.length-1)*3000+2500));}
+ if(step3)new MutationObserver(()=>{if(shown(step3)){if(!step3.dataset.v39Played){step3.dataset.v39Played='1';playLines();}}else delete step3.dataset.v39Played;}).observe(step3,{attributes:true,attributeFilter:['class']});
+ // ── 4. 알림 정리
+ // '새로운 개발 구역' 같은 띠 배너는 일반 알림으로 (상단에 여러 개가 겹치지 않게)
+ v4Banner=function(message){toast(message);};
+ // 행동 안내(v23)가 떠 있으면 일반 알림은 그 아래로
+ const host=$('toastHost'),fb=()=>$('v23Feedback');
+ setInterval(()=>{if(!host||!host.children.length)return;const f=fb();if(f&&shown(f)){const r=f.getBoundingClientRect();if(r.bottom>140)host.style.setProperty('top',Math.round(r.bottom+8)+'px','important');}
+   else window.industrialV30?.placeToasts?.();},250);
+ // 4장부터는 '양털 깎기' 버튼 숨김 (공장 시대엔 의미가 없음)
+ const sheep=document.querySelector('.sheep-action');
+ setInterval(()=>{if(sheep)sheep.style.display=(s?.started&&v5Level()>=4)?'none':'';},1000);
+ window.industrialV39={version:'39.0',enterView,leaveView,get mode(){return mode}};
+})();
+</script>
+
+<style id="v40Type">
+/* v40 | 글꼴 통일 · 최소 글자 크기 · 터치 영역 */
+:root{--v40-font:'Pretendard Variable',Pretendard,'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,-apple-system,sans-serif}
+html,body,#app,button,input,select,textarea{font-family:var(--v40-font)!important}
+#app *:not(.v38-line){font-family:var(--v40-font)!important}
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+/* 상단 정보: 가장 자주 보는 글자는 크게 */
+.hud .identity .brand,.identity .brand{font-size:12px!important;white-space:nowrap!important}
+#v18RoadText{font-size:12px!important;line-height:1.5}
+#coinText{font-size:19px!important;letter-spacing:-.3px}
+#incomeText{font-size:12px!important;font-weight:700}
+#v26People{font-size:12.5px!important}
+.mission-bar{height:auto!important;min-height:50px!important;padding:6px 8px 6px 12px!important}
+.mission-copy small{font-size:12px!important}
+.mission-copy strong{font-size:12.5px!important;font-weight:700!important}
+.mission-action{font-size:13px!important;min-height:38px!important;min-width:64px!important;font-weight:800!important}
+/* 상단·지도 버튼 터치 영역 40px 이상 */
+.hud #soundButton,.hud #speedButton{height:40px!important;min-width:40px!important;font-size:13px!important}
+.map-controls button,#v19Fit,#v20More{height:40px!important;width:40px!important;min-height:40px!important}
+/* 건설 분류 칩 */
+#v12Categories button{min-height:34px!important;font-size:12.5px!important;padding:0 12px!important}
+/* 노동 창 라벨 */
+#v12Workers small,#v12Workers .v12-small{font-size:12px!important}
+#v12Workers .v12-stat b{font-size:17px!important}
+/* 연구 카드 */
+.tech-card .tag{font-size:11.5px!important}
+.tech-card p{font-size:12.5px!important;line-height:1.55!important}
+.tech-card .condition{font-size:12px!important}
+/* 무역 지도 */
+.world-header small,.world-header h2{letter-spacing:.2px}
+.world-screen span,.world-screen small{font-size:max(11.5px,1em)}
+.route-card p,.route-card .route-footer span{font-size:12.5px!important}
+.mini-button{min-height:40px!important;font-size:13px!important}
+.map-attribution,.history-disclaimer{font-size:11px!important}
+/* 저택 창 */
+.v5-estate-screen button{min-height:40px}
+.v5-estate-screen small{font-size:11px!important}
+/* 아래로 끌어 닫는 손잡이도 손가락으로 잡기 쉽게 */
+#sheetToggle{min-height:26px!important}
+</style>
+<script id="v40UX">
+/* v40 | 연구 목록 정렬 · 경고 위치 */
+(()=>{
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ // 연구 창: 지금 연구할 수 있는 것 → 조건 필요 → 완료 순서 (완료된 연구가 위를 가리지 않게)
+ const panel=$('panelContent');
+ function sortTech(){if(!panel||selectedTab!=='tech')return;const list=panel.querySelector('.tech-list');if(!list)return;
+   const cards=[...list.children];if(cards.length<2)return;
+   // 저택 단계가 모자라 잠긴 연구는 '연구 가능'이 아니라 잠김으로 표시
+   for(const c of cards){const btn=c.querySelector('button[data-tech]'),tag=c.querySelector('.tag');if(btn&&/저택 Lv/.test(btn.textContent)&&tag&&!c.classList.contains('completed')){c.classList.add('locked');tag.textContent='🔒 '+btn.textContent.replace(/🔒\s*/,'').trim();}}
+   const rank=c=>c.classList.contains('completed')?2:c.classList.contains('locked')?1:0;
+   const want=cards.slice().sort((a,b)=>rank(a)-rank(b));if(want.every((c,i)=>c===cards[i]))return;
+   for(const c of want)list.append(c);
+   if(!list.querySelector('.v40-done-label')){const first=want.find(c=>rank(c)===2);if(first){const lab=document.createElement('div');lab.className='v40-done-label';lab.textContent='✓ 완료한 연구';lab.style.cssText='margin:14px 4px 6px;font-size:12px;color:#9fc7bb;font-weight:800';first.before(lab);}}}
+ if(panel)new MutationObserver(sortTech).observe(panel,{childList:true});
+ // 원료 경고는 아래 패널(건설·노동·건물 창)이 열려 있으면 잠시 숨김
+ const alert=$('v35Alert');const covers=['v11BuildTray','v12Workers','v18BuildingCard','v11BuildDetails'];
+ setInterval(()=>{if(!alert)return;const blocked=covers.some(id=>{const e=$(id);return e&&!e.classList.contains('hidden')&&e.getClientRects().length})||(typeof sheetOpen!=='undefined'&&sheetOpen);
+   alert.style.visibility=blocked?'hidden':'';},300);
 })();
 </script>
 
