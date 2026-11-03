@@ -4476,7 +4476,7 @@ window.v9SetGraphicsContext=function(context){g=context};
    if(!force&&signature===lastCardKey)return;lastCardKey=signature;
    card.innerHTML=`<header><b>${B[b.type].icon} ${B[b.type].name} <span>Lv.${b.level}</span></b><button data-v18-close aria-label="건물 관리 닫기">×</button></header>
    <div class="v18-card-info"><span>👷 ${b.workers}/${cap}명</span><span>${status(b)}</span></div>
-   <div class="v18-card-actions"><button data-v18-upgrade ${b.level>=3||s.coins<price?'disabled':''}>${b.level>=3?'최대 강화':`🏗 증축 £${price}`}</button><button data-v18-plus ${b.workers>=cap||s.hired<=activeWorkers(s)?'disabled':''}>+ 노동자</button><button data-v18-minus ${b.workers===0?'disabled':''}>− 노동자</button><button data-v18-details>관리 더보기</button>${has(s,'massUpgrade')?(()=>{const m=window.industrialV33?.massPlan(b.type);return m&&m.list.length?`<button data-v33-massup class="v33-massup" ${s.coins<buildingUpgradeCost(m.list[0])?'disabled':''}>⏫ 같은 건물 전체 증축 (${m.list.length}곳 · 최대 £${m.total.toLocaleString('ko-KR')})</button>`:''})():''}${b.type==='crystalPalace'&&b.workers<cap?`<button data-v38-fill class="v33-massup">👷 수정궁에 노동자 가득 채우기 (${(cap-b.workers).toLocaleString('ko-KR')}명 더)</button>`:''}<button data-v18-remove class="v32-remove">🗑 철거</button></div>`;
+   <div class="v18-card-actions"><button data-v18-upgrade ${b.level>=3||s.coins<price?'disabled':''}>${b.level>=3?'최대 강화':`🏗 증축 £${price}`}</button><button data-v18-plus ${b.workers>=cap||s.hired<=activeWorkers(s)?'disabled':''}>+ 노동자</button><button data-v18-minus ${b.workers===0?'disabled':''}>− 노동자</button><button data-v18-details>관리 더보기</button>${has(s,'massUpgrade')?(()=>{const m=window.industrialV33?.massPlan(b.type);return m&&m.list.length?`<button data-v33-massup class="v33-massup" ${s.coins<buildingUpgradeCost(m.list[0])?'disabled':''}>⏫ 같은 건물 전체 증축 (${m.list.length}곳 · 최대 £${m.total.toLocaleString('ko-KR')})</button>`:''})():''}${b.type==='crystalPalace'&&b.workers<cap?`<button type="button" class="v33-massup" disabled style="opacity:1">👆 창을 닫고 수정궁을 연타하세요 · ${b.workers.toLocaleString('ko-KR')}/${cap.toLocaleString('ko-KR')}명</button>`:''}<button data-v18-remove class="v32-remove">🗑 철거</button></div>`;
    card.classList.remove('hidden');
  }
  card.addEventListener('click',e=>{
@@ -6105,7 +6105,7 @@ window.industrialV23={version:VERSION,explainBuild,explainTech,explainUpgrade,ex
    const missing=types.filter(type=>!s.buildings.some(b=>b.type===type));
    const names=missing.map(type=>B[type].name);
    const remainder=names.length?' · 남음: '+names[0]+(names.length>1?' 외 '+(names.length-1)+'종':''):'';
-   const facilities=s.buildings.filter(b=>(V5_BUILD_GATES[b.type]||1)<=lv&&B[b.type]?.cap>0);
+   const facilities=s.buildings.filter(b=>(V5_BUILD_GATES[b.type]||1)<=lv&&B[b.type]?.cap>0&&b.type!=='crystalPalace');
    const baseCap=b=>Math.ceil(Math.min(B[b.type].cap,window.industrialV28Rules?.baseCaps?.[b.type]||B[b.type].cap)*.5);
    const placed=facilities.reduce((n,b)=>n+Math.min(b.workers,baseCap(b)),0),needed=facilities.reduce((n,b)=>n+baseCap(b),0);
    const unfilled=facilities.find(b=>b.workers<baseCap(b));
@@ -6514,7 +6514,7 @@ button:is(.v29-close,.round-close,.v12-x,.v10-close,.v21-close,[aria-label*="닫
  window.addEventListener('popstate',onBack);
  function refreshSize(){document.documentElement.classList.toggle('v29-fullscreen',!!(document.fullscreenElement||document.webkitFullscreenElement));if(typeof resize==='function')resize();scheduleDecorate();}
  document.addEventListener('fullscreenchange',refreshSize);document.addEventListener('webkitfullscreenchange',refreshSize);
- const badge=document.querySelector('.version-badge');if(badge)badge.textContent='CANVAS v41.0';
+ const badge=document.querySelector('.version-badge');if(badge)badge.textContent='CANVAS v42.0';
  document.title='산업혁명: 부의 시대';
  window.industrialV29={version:'29.0',enterFullscreen,closeTopMenu,armHistory};
  decorate();
@@ -6578,8 +6578,7 @@ body:has(#v8Tour:not(.hidden)) :is(.hud,.mission-bar,.map-ui,.map-controls,#toas
    if(shown(tut)){st.setProperty('top',Math.round(tut.getBoundingClientRect().bottom+8-(host.offsetParent?.getBoundingClientRect().top||0))+'px','important');}
    else st.removeProperty('top');
  }
- if(host)new MutationObserver(placeToasts).observe(host,{childList:true});
- setInterval(()=>{if(host&&host.children.length)placeToasts();},300);
+ // v42: 알림 위치는 v42 블록 한 곳에서만 정함
  // ⋯ 메뉴: 바깥을 누르면 닫히도록 (다른 창과 겹쳐 쌓이지 않게)
  document.addEventListener('click',e=>{
    const panel=$id('v20MorePanel');
@@ -7151,9 +7150,9 @@ body:has(#v33News:not(.hidden)) :is(#v19UpgradeScene,#v12EraFlash,#v3Chapter,#v4
  'use strict';
  const $=id=>document.getElementById(id);
  // ── 만국박람회장 (수정궁)
- const PALACE={id:'crystalPalace',name:'만국박람회장 (수정궁)',icon:'🏛️',cost:3000,cap:360,unlock:null,
-   about:'1851년 런던 하이드 파크에 세워진 유리와 철의 거대한 전시관입니다. 노동자로 가득 채우면 만국박람회를 열 수 있습니다.',
-   effect:'노동자 360명 · 만국박람회 개최 조건',label:'박람회'};
+ const PALACE={id:'crystalPalace',name:'만국박람회장 (수정궁)',icon:'🏛️',cost:3000,cap:10000,unlock:null,
+   about:'1851년 런던 하이드 파크에 세워진 유리와 철의 거대한 전시관입니다. 지도에서 수정궁을 계속 터치해 노동자 1만 명을 모으면 만국박람회를 열 수 있습니다.',
+   effect:'노동자 10,000명 · 지도에서 50번 연타해 모으기',label:'박람회'};
  if(!B.crystalPalace){BUILDINGS.push(PALACE);B.crystalPalace=PALACE;}
  V5_BUILD_GATES.crystalPalace=7;
  // 7장 목표: 수정궁 건설 + 노동자 가득
@@ -7161,8 +7160,8 @@ body:has(#v33News:not(.hidden)) :is(#v19UpgradeScene,#v12EraFlash,#v3Chapter,#v4
  v5Requirements=function(level=v5Level(),...rest){const rows=prevReq(level,...rest);
    if(Math.max(1,Math.min(7,level))!==7)return rows;
    const p=s.buildings.find(b=>b.type==='crystalPalace');
-   return [...rows,['🏛️ 만국박람회장(수정궁) 건설',!!p],[`👷 수정궁에 노동자 가득 채우기 ${p?p.workers:0}/${PALACE.cap}명`,!!p&&p.workers>=PALACE.cap]];};
- T.expo.req=[...(T.expo.req||[]).filter(x=>!/수정궁/.test(x)),'만국박람회장(수정궁) 건설','수정궁 노동자 360명 가득'];
+   return [...rows,['🏛️ 만국박람회장(수정궁) 건설',!!p],[`👷 수정궁을 연타해 노동자 모으기 ${(p?p.workers:0).toLocaleString('ko-KR')}/${PALACE.cap.toLocaleString('ko-KR')}명`,!!p&&p.workers>=PALACE.cap]];};
+ T.expo.req=[...(T.expo.req||[]).filter(x=>!/수정궁/.test(x)),'만국박람회장(수정궁) 건설','수정궁 노동자 10,000명 (연타로 모으기)'];
  const oldExpoTest=T.expo.test;
  T.expo.test=st=>{const p=st.buildings.find(b=>b.type==='crystalPalace');return !!p&&p.workers>=PALACE.cap&&oldExpoTest(st);};
  // 한 곳만 건설
@@ -7170,7 +7169,7 @@ body:has(#v33News:not(.hidden)) :is(#v19UpgradeScene,#v12EraFlash,#v3Chapter,#v4
  build=function(type,...a){if(type==='crystalPalace'&&count(s,'crystalPalace')>=1){toast('만국박람회장은 한 곳만 지을 수 있습니다.',true);return;}
    const n=s.buildings.length,r=oldBuild(type,...a);
    if(type==='crystalPalace'&&s.buildings.length>n&&!s.teacher)window.industrialV33?.push({kicker:'🏛️ 1851 · 런던 하이드 파크',icon:'🏛️',title:'수정궁이 세워졌습니다',
-     body:'<p>유리 약 30만 장과 철골로 지은 거대한 전시관입니다. 이제 노동자를 가득 채워 세계 각국의 손님을 맞을 준비를 하세요.</p><ul><li>건물을 누르고 <b>👷 노동자 가득 채우기</b>를 누르세요</li><li>360명이 모두 배치되면 연구 메뉴에서 만국박람회를 열 수 있습니다</li></ul>'});
+     body:'<p>유리 약 30만 장과 철골로 지은 거대한 전시관입니다. 박람회를 열려면 전시를 준비할 노동자 1만 명이 필요합니다.</p><ul><li>👆 지도에서 <b>수정궁을 계속 터치</b>하세요. 한 번 누를 때마다 노동자 200명이 모여듭니다</li><li><b>50번</b> 터치해 1만 명을 채우면 연구 메뉴에서 만국박람회를 열 수 있습니다</li></ul>'});
    return r;};
  // 노동자 가득 채우기: 미배치 인원 먼저, 모자라면 고용해서 배치
  function fill(uid){const b=s.buildings.find(x=>x.uid===uid);if(!b)return;const cap=B[b.type].cap;let need=cap-b.workers;if(need<=0)return;
@@ -7248,7 +7247,7 @@ body.v39-view :is(.hud,.mission-bar,#v11Dock,#v11BuildTray,#v11BuildDetails,#v12
 #v39Bar button{flex:none;border:0;border-radius:11px;background:#e7be72;color:#1d2f33;font-weight:900;font-size:14px;padding:11px 13px;min-height:44px}
 /* 엔딩 마지막 장면: 한 줄씩 (3초 간격, 앞 줄은 사라짐) */
 #endingStep3 .v38-lines{position:relative;width:min(92vw,560px);height:clamp(150px,30vh,240px);display:block;padding:0}
-#endingStep3 .v38-line{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);opacity:0!important;animation:none!important;transition:opacity .9s ease,filter .9s ease;filter:blur(3px)}
+#endingStep3 .v38-line{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);opacity:0!important;animation:none!important;transition:opacity 2.2s ease,filter 2.2s ease;filter:blur(3px)}
 #endingStep3 .v38-line.v39-on{opacity:1!important;filter:none}
 #endingStep3 .ending-restart{animation:none!important;opacity:0;transition:opacity 1.2s ease;pointer-events:none}
 #endingStep3 .ending-restart.v39-on{opacity:1;pointer-events:auto}
@@ -7296,16 +7295,18 @@ body.v39-view :is(.hud,.mission-bar,#v11Dock,#v11BuildTray,#v11BuildDetails,#v12
  const step3=$('endingStep3');let timers=[];
  function playLines(){timers.forEach(clearTimeout);timers=[];const lines=[...step3.querySelectorAll('.v38-line')],restart=step3.querySelector('.ending-restart');
    lines.forEach(l=>l.classList.remove('v39-on'));restart?.classList.remove('v39-on');
-   lines.forEach((l,i)=>{timers.push(setTimeout(()=>{lines.forEach(x=>x.classList.remove('v39-on'));l.classList.add('v39-on');},600+i*3000));});
-   timers.push(setTimeout(()=>restart?.classList.add('v39-on'),600+(lines.length-1)*3000+2500));}
+   // 한 줄: 2.2초에 걸쳐 나타남 → 약 4초 머묾 → 2.2초에 걸쳐 사라짐 → 잠깐의 정적 → 다음 줄
+   const START=1500,CYCLE=8000,HOLD=6000;
+   lines.forEach((l,i)=>{const at=START+i*CYCLE;timers.push(setTimeout(()=>l.classList.add('v39-on'),at));
+     if(i<lines.length-1)timers.push(setTimeout(()=>l.classList.remove('v39-on'),at+HOLD));});
+   timers.push(setTimeout(()=>restart?.classList.add('v39-on'),START+(lines.length-1)*CYCLE+6000));}
  if(step3)new MutationObserver(()=>{if(shown(step3)){if(!step3.dataset.v39Played){step3.dataset.v39Played='1';playLines();}}else delete step3.dataset.v39Played;}).observe(step3,{attributes:true,attributeFilter:['class']});
  // ── 4. 알림 정리
  // '새로운 개발 구역' 같은 띠 배너는 일반 알림으로 (상단에 여러 개가 겹치지 않게)
  v4Banner=function(message){toast(message);};
  // 행동 안내(v23)가 떠 있으면 일반 알림은 그 아래로
  const host=$('toastHost'),fb=()=>$('v23Feedback');
- setInterval(()=>{if(!host||!host.children.length)return;const f=fb();if(f&&shown(f)){const r=f.getBoundingClientRect();if(r.bottom>140)host.style.setProperty('top',Math.round(r.bottom+8)+'px','important');}
-   else window.industrialV30?.placeToasts?.();},250);
+ // v42: 알림 위치는 v42 블록 한 곳에서만 정함
  // 4장부터는 '양털 깎기' 버튼 숨김 (공장 시대엔 의미가 없음)
  const sheep=document.querySelector('.sheep-action');
  setInterval(()=>{if(sheep)sheep.style.display=(s?.started&&v5Level()>=4)?'none':'';},1000);
@@ -7432,6 +7433,82 @@ body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
  const oldSfx=playSfx;playSfx=function(...a){if(visible(step3))return;return oldSfx(...a);};
  window.industrialV41={version:'41.0',sync,trackFor,get current(){return current},state:()=>Object.fromEntries(Object.entries(players).map(([k,a])=>[k,{paused:a.paused,t:+a.currentTime.toFixed(1),vol:+a.volume.toFixed(2),err:a.error?.code||0}]))};
  sync();
+})();
+</script>
+
+<style id="v42Style">
+.v42-plus{position:fixed;z-index:500;pointer-events:none;font-weight:900;font-size:17px;color:#ffe3a1;text-shadow:0 2px 6px #000a;animation:v42Up .9s ease-out forwards}
+@keyframes v42Up{from{opacity:1;transform:translate(-50%,0) scale(1)}to{opacity:0;transform:translate(-50%,-56px) scale(1.15)}}
+</style>
+<script id="v42Palace">
+/* v42 | 알림 위치 고정 · 수정궁 연타 · 수정궁 안내 */
+(()=>{
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const shown=el=>!!el&&!el.hidden&&!el.classList.contains('hidden')&&el.getClientRects().length>0&&getComputedStyle(el).visibility!=='hidden';
+ // ── 1. 알림 위치: 한 곳에서만, 값이 바뀔 때만 정함 (위아래로 튀지 않게)
+ const host=$('toastHost');let baseTop=null,lastKey='';
+ const MODALS=['worldOverlay','v5EstateOverlay','eventOverlay','finalOverlay','v21TeacherDialog','v22Panel','v4Newspaper','v4Industry','v5TimelineOverlay','v3Combos','compareOverlay'];
+ function place(){if(!host)return;const st=host.style;
+   if(baseTop===null){st.removeProperty('top');st.removeProperty('bottom');baseTop=host.getBoundingClientRect().top;}
+   let key;
+   if(MODALS.some(id=>shown($(id)))){key='bottom';if(key!==lastKey){st.setProperty('top','auto','important');st.setProperty('bottom','18px','important');}}
+   else{let top=baseTop;for(const id of ['v28Tutorial','v23Feedback']){const e=$(id);if(shown(e))top=Math.max(top,e.getBoundingClientRect().bottom+8);}
+     top=Math.round(top/4)*4;key='top'+top;  // 4px 단위로 맞춰 작은 흔들림 무시
+     if(key!==lastKey){st.removeProperty('bottom');const parentTop=host.offsetParent?.getBoundingClientRect().top||0;
+       if(top===Math.round(baseTop/4)*4)st.removeProperty('top');else st.setProperty('top',(top-parentTop)+'px','important');}}
+   lastKey=key;}
+ if(window.industrialV30)window.industrialV30.placeToasts=place;
+ if(host)new MutationObserver(place).observe(host,{childList:true});
+ setInterval(()=>{if(host?.children.length)place();},300);
+ addEventListener('resize',()=>{baseTop=null;lastKey='';place();});
+ // ── 2. 수정궁 연타로 노동자 모으기 (200명 × 50번 = 1만 명)
+ const PER_TAP=200;
+ const palace=()=>s.buildings.find(b=>b.type==='crystalPalace');
+ const cap=()=>B.crystalPalace?.cap||10000;
+ function plus(x,y,text){const el=document.createElement('div');el.className='v42-plus';el.textContent=text;el.style.left=x+'px';el.style.top=(y-20)+'px';document.body.append(el);setTimeout(()=>el.remove(),950);}
+ function tapPalace(b,x,y){const room=cap()-b.workers;if(room<=0)return;const n=Math.min(PER_TAP,room);
+   b.workers+=n;s.hired+=n;s.stats.totalHired=(s.stats.totalHired||0)+n;s.stats.peakWorkers=Math.max(s.stats.peakWorkers||0,s.hired);
+   (s.v42||={}).taps=((s.v42.taps)||0)+1;
+   plus(x,y,`+${n} 👷`);
+   try{navigator.vibrate?.(15);}catch{}try{playSfx('tap');}catch{}
+   if(b.workers>=cap()){toast('🏛️ 수정궁에 노동자 1만 명이 모였습니다!');
+     window.industrialV33?.push({kicker:'🏛️ 만국박람회 준비 완료',icon:'🎉',title:'수정궁이 노동자로 가득 찼습니다',
+       body:'<p>전시품을 나르고, 기계를 설치하고, 유리를 닦을 노동자 1만 명이 모였습니다.</p><ul><li>아래 <b>⚙️ 연구</b> 메뉴에서 <b>1851년 런던 만국박람회</b>를 여세요</li></ul>'});}
+   updateUI(true);if(s.v42.taps%5===0||b.workers>=cap())save();}
+ const oldTouch=touchAt;
+ touchAt=function(x,y,...rest){
+   if(!nextPlacement&&s?.started&&!s.finished){const item=window.industrialV27?.hitTest?.(x,y);
+     const b=item?.building;if(b?.type==='crystalPalace'&&b.workers<cap()){tapPalace(b,x,y);return;}}
+   return oldTouch(x,y,...rest);};
+ // 지도 위 진행 표시: 수정궁 머리 위에 '👆 터치!'와 진행 막대
+ const oldDraw=drawBuilding;
+ drawBuilding=function(b,x,y,z,t,...rest){const r=oldDraw(b,x,y,z,t,...rest);
+   if(b.type!=='crystalPalace'||b.workers>=cap()||!s.started||s.finished)return r;
+   try{ctx.save();ctx.translate(x,y);const k=b.workers/cap(),bob=Math.sin(performance.now()*.006)*3,w=112,h=9,top=96+bob;
+     const label=`👆 터치! ${b.workers.toLocaleString('ko-KR')}/${cap().toLocaleString('ko-KR')}명`;
+     ctx.font='800 13px system-ui,sans-serif';const bw=Math.max(w+16,ctx.measureText(label).width+24);
+     ctx.fillStyle='rgba(15,40,52,.95)';ctx.strokeStyle='#e7be72';ctx.lineWidth=1.5;
+     ctx.beginPath();ctx.moveTo(-6,top-26);ctx.lineTo(0,top-34);ctx.lineTo(6,top-26);ctx.closePath();ctx.fill();ctx.beginPath();ctx.roundRect(-bw/2,top-26,bw,44,9);ctx.fill();ctx.stroke();
+     ctx.fillStyle='#ffe3a1';ctx.textAlign='center';ctx.textBaseline='middle';
+     ctx.fillText(label,0,top-12);
+     ctx.fillStyle='#2c4a52';ctx.fillRect(-w/2,top+2,w,h);ctx.fillStyle='#e7be72';ctx.fillRect(-w/2,top+2,w*k,h);
+     ctx.restore();}catch(e){}
+   return r;};
+ // ── 3. 7장에 들어서면 수정궁이 무엇인지 알려 줌
+ const INTRO={kicker:'🏛️ 최종 목표 · 1851년 런던 만국박람회',icon:'🏛️',title:'만국박람회장, 수정궁이란?',
+   body:`<p>1851년 영국은 세계 여러 나라의 산업 생산품을 한자리에 모은 <b>만국박람회</b>를 열었습니다. 전시장은 런던 하이드 파크에 세운 <b>수정궁(Crystal Palace)</b>이었습니다.</p>
+   <ul><li>철골과 <b>유리 약 30만 장</b>으로 지은 거대한 전시관</li><li>공장에서 같은 규격의 부품을 대량으로 만들었기에 짧은 기간에 지을 수 있었습니다</li><li>약 <b>600만 명</b>이 찾아와 영국의 기계와 공업 제품을 구경했습니다</li></ul>
+   <p style="margin-top:8px">🎯 <b>할 일</b><br>① 🏗 건설 → 🏛️ <b>만국박람회장 (수정궁)</b> 건설 (£3,000)<br>② 지도에서 <b>수정궁을 50번 연타</b>해 노동자 1만 명 모으기<br>③ ⚙️ 연구 → <b>만국박람회 개최</b></p>`};
+ setInterval(()=>{if(!s?.started||s.finished||s.teacher||s.v34?.active)return;if(v5Level()<7)return;
+   const v=(s.v42||={});if(v.intro)return;v.intro=true;save();window.industrialV33?.push(INTRO);},1500);
+ // 수정궁을 지으면 카메라가 수정궁을 비춤
+ const oldBuild=build;
+ build=function(type,...a){const n=s.buildings.length,r=oldBuild(type,...a);
+   if(type==='crystalPalace'&&s.buildings.length>n){const b=palace();if(b){const cr=$('mapCanvas').getBoundingClientRect(),q=project(b.r,b.c);s.camera.panX+=cr.width/2-q.x;s.camera.panY+=cr.height*.4-q.y;}
+     $('v11BuildTray')?.classList.add('hidden');$('v11BuildDetails')?.classList.add('hidden');}
+   return r;};
+ window.industrialV42={version:'42.0',place,tapPalace,INTRO};
 })();
 </script>
 
